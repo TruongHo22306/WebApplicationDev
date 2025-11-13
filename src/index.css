@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-size: 15px; /* tăng font */
+}
+
+body {
+  background-color: #f7f5f4;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+  animation: fade 0.6s ease;
+}
+
+/* ANIMATED PURPLE GRADIENT */
+.apple-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255,0,255,0.35), transparent 60%),
+              radial-gradient(circle at 70% 80%, rgba(0,150,255,0.25), transparent 60%);
+  filter: blur(60px);
+  animation: appleGlow 12s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes appleGlow {
+  0% {
+    transform: translate(-20px, -10px) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(20px, 10px) scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* GLASS LAYER */
+.apple-glass {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+/* SPOTLIGHT OVERLAY */
+.apple-spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.07), rgba(0,0,0,0.6));
+  mix-blend-mode: soft-light;
+}
+
+/* EDGE GLOW */
+.edge-glow {
+  position: absolute;
+  top: -5px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+  filter: blur(8px);
+}
+
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slideLeft {
+  animation: slideLeft .6s ease forwards;
+}
+
+.animate-slideRight {
+  animation: slideRight .6s ease forwards;
+}
+
+/* Ripple effect */
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+.animate-ripple {
+  animation: ripple .6s ease-out;
+}
+
+@keyframes fadeDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeDown {
+  animation: fadeDown 0.7s ease forwards;
+}
+
+/* Ripple Effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple-effect 600ms linear;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+@keyframes ripple-effect {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Slide Left */
+@keyframes slideLeft {
+  0% { opacity: 0; transform: translateX(-40px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.animate-slideLeft {
+  animation: slideLeft 0.8s ease-out;
+}
+
+/* Slide Right */
+@keyframes slideRight {
+  0% { opacity: 0; transform: translateX(40px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.animate-slideRight {
+  animation: slideRight 0.8s ease-out;
+}
+
+/* Fade */
+@keyframes fade {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade {
+  animation: fade 1s ease-out;
+}
+
+/* Page fade-in */
+@keyframes pageFade {
+  0% { opacity: 0; transform: translateY(15px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.page-transition {
+  animation: pageFade 0.5s ease;
+}
+
+
