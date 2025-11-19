@@ -12,8 +12,7 @@ export default function Topbar({ darkMode, onToggleDarkMode }) {
         backdrop-blur-md
       "
     >
-      <div className="text-2xl font-semibold pl-2">Dexter</div>
-
+      
       <input
         type="text"
         placeholder="Search now"

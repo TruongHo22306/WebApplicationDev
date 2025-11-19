@@ -1,4 +1,3 @@
-import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import Uploader from "../components/Uploader";
 import FeedPost from "../components/FeedPost";
@@ -16,22 +15,23 @@ export default function Home({ darkMode, onToggleDarkMode }) {
         (darkMode ? "bg-neutral-900 text-gray-100" : "bg-[#f7f5f4] text-black")
       }
     >
-      {/* SIDEBAR */}
-      <Sidebar darkMode={darkMode} />
 
-      {/* MAIN AREA */}
+      {/* MAIN CONTENT AREA */}
       <div className="flex-1">
+
         {/* TOPBAR */}
         <Topbar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />
 
-        {/* CONTENT WRAPPER */}
+        {/* MAIN WRAPPER */}
         <div className="flex px-10 mt-8 w-full justify-between gap-10">
 
-          {/* FEED */}
+          {/* FEED LEFT */}
           <div className="flex-1 max-w-[1100px] pr-10 transition-all duration-300">
+
+            {/* Uploader */}
             <Uploader />
 
-            {/* FEED HEADER */}
+            {/* Feed Header */}
             <div className="mt-8 border-b pb-2 flex justify-between 
                 text-gray-700 dark:text-gray-200 
                 border-gray-300 dark:border-neutral-700 transition-colors duration-300">
@@ -42,7 +42,7 @@ export default function Home({ darkMode, onToggleDarkMode }) {
               </div>
             </div>
 
-            {/* POSTS */}
+            {/* Posts */}
             <FeedPost />
             <FeedPost />
             <FeedPost />
