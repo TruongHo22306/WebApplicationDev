@@ -1,36 +1,32 @@
-import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Signup from "./pages/SignUp";
-import Profile from "./pages/Profile";
-import SearchPage from "./pages/Search";
-import Reels from "./pages/Reels";
+import { useState } from "react";
 
 import Layout from "./layout/Layout";
+
+import Home from "./pages/Home";
+import Search from "./pages/Search";
+import Reels from "./pages/Reels";
+import Messages from "./pages/Messages";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
 
   return (
     <BrowserRouter>
-
       <Routes>
-
-        {/* LOGIN + SIGNUP KHÔNG CÓ SIDEBAR */}
+        
+        {/* LOGIN / SIGNUP không cần sidebar */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* TẤT CẢ PAGE CÒN LẠI ĐỀU CÓ SIDEBAR */}
+        {/* TẤT CẢ PAGE KHÁC ĐỀU NẰM TRONG LAYOUT */}
         <Route
           path="/"
           element={
-            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
-              <Home
-                darkMode={darkMode}
-                onToggleDarkMode={() => setDarkMode(!darkMode)}
-              />
+            <Layout darkMode={darkMode}>
+              <Home darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)} />
             </Layout>
           }
         />
@@ -38,30 +34,29 @@ export default function App() {
         <Route
           path="/search"
           element={
-            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
-              <SearchPage />
+            <Layout darkMode={darkMode}>
+              <Search darkMode={darkMode} />
             </Layout>
           }
         />
 
         <Route
-          path="/profile"
+          path="/reels"
           element={
-            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
-              <Profile />
+            <Layout darkMode={darkMode}>
+              <Reels darkMode={darkMode} />
             </Layout>
           }
         />
 
         <Route
-        path="/reels"
-        element={
-          <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
-            <Reels darkMode={darkMode} />
-          </Layout>
+          path="/messages"
+          element={
+            <Layout darkMode={darkMode}>
+              <Messages darkMode={darkMode} />
+            </Layout>
           }
         />
-
 
       </Routes>
     </BrowserRouter>

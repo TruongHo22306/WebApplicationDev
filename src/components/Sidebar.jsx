@@ -10,61 +10,67 @@ import {
   FiMenu,
 } from "react-icons/fi";
 
-export default function Sidebar({ darkMode }) {
+export default function Sidebar({ darkMode, onOpenNotifications }) {
   const [expanded, setExpanded] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // MENU ITEMS
+  // MENU LIST
   const menuItems = [
     { icon: <FiHome size={24} />, label: "Home", path: "/" },
     { icon: <FiSearch size={24} />, label: "Search", path: "/search" },
     { icon: <FiPlay size={24} />, label: "Reels", path: "/reels" },
     { icon: <FiPlus size={24} />, label: "Create", path: "/create" },
-    { icon: <FiHeart size={24} />, label: "Notifications", path: "/notifications" },
+    {
+      icon: <FiHeart size={24} />,
+      label: "Notifications",
+      special: "notifications",
+    },
     { icon: <FiMessageCircle size={24} />, label: "Messages", path: "/messages" },
   ];
 
-  // RIPPLE
+  // Ripple effect
   const createRipple = (e) => {
-    const button = e.currentTarget;
+    const btn = e.currentTarget;
     const ripple = document.createElement("span");
 
-    const size = Math.max(button.clientWidth, button.clientHeight);
-    const rect = button.getBoundingClientRect();
+    const size = Math.max(btn.clientWidth, btn.clientHeight);
+    const rect = btn.getBoundingClientRect();
 
-    ripple.style.width = ripple.style.height = size + "px";
-    ripple.style.left = e.clientX - rect.left - size / 2 + "px";
-    ripple.style.top = e.clientY - rect.top - size / 2 + "px";
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
     ripple.className = "ripple";
 
-    const old = button.getElementsByClassName("ripple")[0];
+    const old = btn.getElementsByClassName("ripple")[0];
     if (old) old.remove();
-
-    button.appendChild(ripple);
+    btn.appendChild(ripple);
   };
 
-  const handleClick = (e, path) => {
+  const handleClick = (e, item) => {
     createRipple(e);
-    navigate(path);
+
+    if (item.special === "notifications") {
+      onOpenNotifications();
+      return;
+    }
+
+    if (item.path) navigate(item.path);
   };
 
   return (
     <div
-      className={`
-        h-screen sticky top-0
-        ${expanded ? "w-56 px-3" : "w-16 px-2 items-center"}
-        bg-[#7d7573] dark:bg-neutral-800
-        text-white
-        flex flex-col justify-between
-        py-6
-        transition-all duration-300
-        overflow-hidden
-      `}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
+      className={`
+        sticky top-0 h-screen
+        transition-all duration-300 
+        ${expanded ? "w-56 px-4" : "w-16 px-2 items-center"}
+        bg-[#7d7573] dark:bg-neutral-800 text-white 
+        flex flex-col justify-between py-6
+      `}
     >
-      {/* TOP LOGO */}
+      {/* LOGO */}
       <div
         className={`flex items-center ${
           expanded ? "justify-start" : "justify-center"
@@ -75,47 +81,45 @@ export default function Sidebar({ darkMode }) {
       </div>
 
       {/* MENU */}
-      <div className="flex flex-col space-y-4 w-full">
-        {menuItems.map((item, idx) => {
-          const isActive = location.pathname === item.path;
+      <div className="flex flex-col w-full space-y-3">
+        {menuItems.map((item, index) => {
+          const active = location.pathname === item.path;
 
           return (
             <button
-              key={idx}
-              onClick={(e) => handleClick(e, item.path)}
+              key={index}
+              onClick={(e) => handleClick(e, item)}
               className={`
-                relative overflow-hidden
-                flex items-center gap-4
-                w-full
-                p-3 rounded-xl
+                relative overflow-hidden group
+                flex items-center gap-4 w-full px-3 py-3 rounded-xl
                 transition-all duration-200
                 ${expanded ? "justify-start" : "justify-center"}
                 ${
-                  isActive
-                    ? "bg-white/25 dark:bg-white/10"
+                  active
+                    ? "bg-white/20 dark:bg-white/10"
                     : "hover:bg-white/20 dark:hover:bg-white/10"
                 }
               `}
             >
               {/* ACTIVE DOT */}
-              {isActive && expanded && (
-                <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-pink-400"></div>
+              {active && expanded && (
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-pink-400"></div>
               )}
 
               {/* ICON */}
-              <div
+              <span
                 className={`${
-                  isActive ? "text-pink-300" : "text-white"
+                  active ? "text-pink-300" : "text-white"
                 } transition`}
               >
                 {item.icon}
-              </div>
+              </span>
 
               {/* LABEL */}
               {expanded && (
                 <span
                   className={`text-[16px] ${
-                    isActive ? "text-pink-300" : "text-white"
+                    active ? "text-pink-300" : "text-white"
                   }`}
                 >
                   {item.label}
@@ -128,17 +132,14 @@ export default function Sidebar({ darkMode }) {
 
       {/* BOTTOM MENU */}
       <button
-        onClick={(e) => handleClick(e, "/more")}
+        onClick={(e) => handleClick(e, { path: "/more" })}
         className={`
-          relative overflow-hidden
-          flex items-center gap-4 w-full
-          p-3 rounded-xl
-          transition-all duration-200
+          relative overflow-hidden flex items-center gap-4 w-full px-3 py-3 
+          rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition
           ${expanded ? "justify-start" : "justify-center"}
-          hover:bg-white/20 dark:hover:bg-white/10
         `}
       >
-        <FiMenu size={24} className="text-white" />
+        <FiMenu size={24} />
         {expanded && <span className="text-[16px]">More</span>}
       </button>
     </div>
