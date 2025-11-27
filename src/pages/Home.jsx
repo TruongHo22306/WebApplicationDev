@@ -39,6 +39,7 @@ export default function Home({ darkMode, onToggleDarkMode }) {
               <div className="flex space-x-8 text-[15px]">
                 <span>Recents</span>
                 <span>Friends</span>
+                <span>Popular</span>
               </div>
             </div>
 

@@ -9,6 +9,8 @@ import Reels from "./pages/Reels";
 import Messages from "./pages/Messages";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Settings from "./pages/Settings";
+import Create from "./pages/Create";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -54,6 +56,16 @@ export default function App() {
           element={
             <Layout darkMode={darkMode}>
               <Messages darkMode={darkMode} />
+            </Layout>
+          }
+        />
+          <Route path="/settings" element={<Settings />} />   
+
+        <Route
+          path="/create"
+          element={
+            <Layout darkMode={darkMode}>
+              <Create darkMode={darkMode} />
             </Layout>
           }
         />
