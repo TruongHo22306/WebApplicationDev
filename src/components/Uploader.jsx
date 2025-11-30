@@ -42,7 +42,7 @@ export default function Uploader() {
         <input
           type="text"
           placeholder="Share something..."
-          className="flex-1 bg-transparent outline-none text-black dark:text-white placeholder-gray-200 text-[17px]"
+          className="flex-1 bg-transparent outline-none text-black dark:text-white placeholder-gray-200 text-[15px]"
         />
 
         <FiSmile className="text-gray-200 dark:text-gray-300" size={20} />
@@ -114,7 +114,7 @@ export default function Uploader() {
             transition
           "
         >
-          Upload
+          Send
         </button>
       </div>
     </div>
