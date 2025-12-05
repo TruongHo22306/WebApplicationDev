@@ -1,9 +1,18 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import NotificationPopup from "../components/NotificationPopup";
+import FriendPopup from "../components/FriendPopup";
 
-export default function Layout({ children, darkMode }) {
+export default function Layout({ children, darkMode, onToggleDarkMode }) {
   const [openNotifications, setOpenNotifications] = useState(false);
+  const [openFriends, setOpenFriends] = useState(false);
+
+  const injectedChild =
+    React.isValidElement(children) &&
+    React.cloneElement(children, {
+      onOpenNotifications: () => setOpenNotifications(true),
+      onOpenFriends: () => setOpenFriends(true),
+    });
 
   return (
     <div
@@ -15,17 +24,23 @@ export default function Layout({ children, darkMode }) {
       {/* SIDEBAR */}
       <Sidebar
         darkMode={darkMode}
+        onToggleDarkMode={onToggleDarkMode}
         onOpenNotifications={() => setOpenNotifications(true)}
       />
 
       {/* MAIN CONTENT */}
       <div className="flex-1 relative">
-        {children}
+        {injectedChild || children}
 
         {/* NOTIFICATION POPUP */}
         <NotificationPopup
           open={openNotifications}
           onClose={() => setOpenNotifications(false)}
+        />
+
+        <FriendPopup
+          open={openFriends}
+          onClose={() => setOpenFriends(false)}
         />
       </div>
     </div>

@@ -1,25 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  FiSun,
-  FiMoon,
   FiBell,
   FiUser,
   FiBookmark,
   FiSettings,
-  FiLogOut
+  FiLogOut,
+  FiUsers,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 export default function Topbar({
-  darkMode,
-  onToggleDarkMode,
-  onOpenNotifications
+  onOpenNotifications,
+  onOpenFriends,
 }) {
   const navigate = useNavigate();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
   const [hasNewNotification, setHasNewNotification] = useState(true); // simulate notification
+  const [hasNewFriends, setHasNewFriends] = useState(true); // simulate friend requests
 
   const dropdownRef = useRef(null);
 
@@ -88,19 +87,18 @@ export default function Topbar({
           )}
         </button>
 
-        {/* Toggle dark mode */}
+        {/* Friend Requests */}
         <button
-          onClick={onToggleDarkMode}
-          className="
-            px-3 py-2 rounded-full 
-            bg-white/10 hover:bg-white/20 
-            transition-all flex items-center justify-center
-          "
+          onClick={() => {
+            onOpenFriends();
+            setHasNewFriends(false);
+          }}
+          className={`relative transition flex items-center justify-center
+            ${hasNewFriends ? "animate-bellShake" : "hover:opacity-80"}`}
         >
-          {darkMode ? (
-            <FiSun size={18} className="text-yellow-300 animate-spinOnce" />
-          ) : (
-            <FiMoon size={18} className="text-gray-200 animate-spinOnce" />
+          <FiUsers size={18} className="text-gray-100" />
+          {hasNewFriends && (
+            <span className="absolute -top-1 -right-1 w-[10px] h-[10px] bg-pink-500 rounded-full"></span>
           )}
         </button>
 

@@ -11,6 +11,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Settings from "./pages/Settings";
 import Create from "./pages/Create";
+import Profile from "./pages/Profile";
+import Stories from "./pages/Stories";
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -27,7 +29,7 @@ export default function App() {
         <Route
           path="/"
           element={
-            <Layout darkMode={darkMode}>
+            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
               <Home darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)} />
             </Layout>
           }
@@ -36,7 +38,7 @@ export default function App() {
         <Route
           path="/search"
           element={
-            <Layout darkMode={darkMode}>
+            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
               <Search darkMode={darkMode} />
             </Layout>
           }
@@ -45,7 +47,7 @@ export default function App() {
         <Route
           path="/reels"
           element={
-            <Layout darkMode={darkMode}>
+            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
               <Reels darkMode={darkMode} />
             </Layout>
           }
@@ -54,7 +56,7 @@ export default function App() {
         <Route
           path="/messages"
           element={
-            <Layout darkMode={darkMode}>
+            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
               <Messages darkMode={darkMode} />
             </Layout>
           }
@@ -64,8 +66,26 @@ export default function App() {
         <Route
           path="/create"
           element={
-            <Layout darkMode={darkMode}>
+            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
               <Create darkMode={darkMode} />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/stories"
+          element={
+            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
+              <Stories />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
+              <Profile />
             </Layout>
           }
         />

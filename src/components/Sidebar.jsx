@@ -8,9 +8,11 @@ import {
   FiHeart,
   FiMessageCircle,
   FiMenu,
+  FiSun,
+  FiMoon,
 } from "react-icons/fi";
 
-export default function Sidebar({ darkMode, onOpenNotifications }) {
+export default function Sidebar({ darkMode, onOpenNotifications, onToggleDarkMode }) {
   const [expanded, setExpanded] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -131,17 +133,31 @@ export default function Sidebar({ darkMode, onOpenNotifications }) {
       </div>
 
       {/* BOTTOM MENU */}
-      <button
-        onClick={(e) => handleClick(e, { path: "/more" })}
-        className={`
-          relative overflow-hidden flex items-center gap-4 w-full px-3 py-3 
-          rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition
-          ${expanded ? "justify-start" : "justify-center"}
-        `}
-      >
-        <FiMenu size={24} />
-        {expanded && <span className="text-[16px]">More</span>}
-      </button>
+      <div className="flex flex-col w-full space-y-3">
+        <button
+          onClick={onToggleDarkMode}
+          className={`
+            relative overflow-hidden flex items-center gap-4 w-full px-3 py-3 
+            rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition
+            ${expanded ? "justify-start" : "justify-center"}
+          `}
+        >
+          {darkMode ? <FiSun size={24} /> : <FiMoon size={24} />}
+          {expanded && <span className="text-[16px]">Switch theme</span>}
+        </button>
+
+        <button
+          onClick={(e) => handleClick(e, { path: "/more" })}
+          className={`
+            relative overflow-hidden flex items-center gap-4 w-full px-3 py-3 
+            rounded-xl hover:bg-white/20 dark:hover:bg-white/10 transition
+            ${expanded ? "justify-start" : "justify-center"}
+          `}
+        >
+          <FiMenu size={24} />
+          {expanded && <span className="text-[16px]">More</span>}
+        </button>
+      </div>
     </div>
   );
 }
