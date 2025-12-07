@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FiBell,
   FiUser,
@@ -6,12 +6,16 @@ import {
   FiSettings,
   FiLogOut,
   FiUsers,
+  FiMoon,
+  FiSun,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 export default function Topbar({
   onOpenNotifications,
   onOpenFriends,
+  darkMode,
+  onToggleDarkMode,
 }) {
   const navigate = useNavigate();
 
@@ -68,7 +72,16 @@ export default function Topbar({
       {/* RIGHT SECTION */}
       <div className="flex items-center space-x-4 absolute right-10">
 
-        {/* 🔔 Notification Bell */}
+        {/* Theme Toggle */}
+        <button
+          onClick={onToggleDarkMode}
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition text-white"
+          aria-label="Toggle theme"
+        >
+          {darkMode ? <FiSun size={18} /> : <FiMoon size={18} />}
+        </button>
+
+        {/* dY"" Notification Bell */}
         <button
           onClick={() => {
             onOpenNotifications();
@@ -181,7 +194,7 @@ export default function Topbar({
         }
         .animate-fadeSlide { animation: fadeSlide 0.18s ease-out; }
 
-        /* 🔔 Bell Shake Animation */
+        /* dY"" Bell Shake Animation */
         @keyframes bellShake {
           0% { transform: rotate(0deg); }
           20% { transform: rotate(15deg); }

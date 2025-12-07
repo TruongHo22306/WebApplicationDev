@@ -99,7 +99,7 @@ export default function Search() {
                       </div>
                     </div>
                     <button className="px-4 py-2 rounded-lg bg-[#5b6cff] text-white text-xs font-semibold hover:opacity-90 flex items-center gap-1">
-                      <FiUserPlus size={14} /> Connect
+                      <FiUserPlus size={14} /> Add friend
                     </button>
                   </div>
                 ))}
