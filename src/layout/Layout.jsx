@@ -18,7 +18,7 @@ export default function Layout({ children, darkMode, onToggleDarkMode }) {
     <div
       className={
         "flex min-h-screen w-full transition-colors duration-300 " +
-        (darkMode ? "bg-neutral-900 text-white" : "bg-[#f7f5f4] text-black")
+        (darkMode ? "bg-neutral-900 text-white" : "bg-[#d9ccbe] text-black")
       }
     >
       {/* SIDEBAR */}

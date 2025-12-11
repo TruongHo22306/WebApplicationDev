@@ -6,11 +6,25 @@ export default function Create({ darkMode }) {
   const [hashtags, setHashtags] = useState([]);
   const [tagInput, setTagInput] = useState("");
   const [uploadedImages, setUploadedImages] = useState([]);
+  const [imageEdits, setImageEdits] = useState([]);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [isDraft, setIsDraft] = useState(false);
 
   const sidebarColor = darkMode ? "#404040" : "#7d7573";
+  const defaultEditState = { scale: 1, offsetX: 0, offsetY: 0, rotation: 0 };
 
   const suggestedTags = ["LoveYourSkin", "GlowGoals", "BeautyEssentials"];
+  const gridOverlayStyle = {
+    backgroundImage: `
+      linear-gradient(rgba(255,255,255,0.22) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px)
+    `,
+    backgroundSize: "50px 50px",
+    mixBlendMode: "screen",
+  };
+
+  const transformFor = (edit) =>
+    `translate(${edit.offsetX}%, ${edit.offsetY}%) scale(${edit.scale}) rotate(${edit.rotation}deg)`;
 
   const handleAddTag = (tag) => {
     if (!hashtags.includes(tag)) setHashtags([...hashtags, tag]);
@@ -23,7 +37,31 @@ export default function Create({ darkMode }) {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const previews = files.map((f) => URL.createObjectURL(f));
-    setUploadedImages([...uploadedImages, ...previews]);
+    if (!previews.length) return;
+
+    setUploadedImages((prev) => {
+      const nextImages = [...prev, ...previews];
+      setActiveIndex(nextImages.length - 1);
+      return nextImages;
+    });
+
+    setImageEdits((prev) => [...prev, ...previews.map(() => defaultEditState)]);
+  };
+
+  const currentIndex = uploadedImages.length
+    ? Math.min(activeIndex === -1 ? 0 : activeIndex, uploadedImages.length - 1)
+    : -1;
+
+  const activeImage = currentIndex >= 0 ? uploadedImages[currentIndex] : null;
+  const activeEdit = currentIndex >= 0 ? imageEdits[currentIndex] || defaultEditState : defaultEditState;
+
+  const updateEdit = (key, value) => {
+    if (currentIndex < 0) return;
+    setImageEdits((prev) => {
+      const next = [...prev];
+      next[currentIndex] = { ...(prev[currentIndex] || defaultEditState), [key]: value };
+      return next;
+    });
   };
 
   return (
@@ -130,11 +168,18 @@ export default function Create({ darkMode }) {
         <div className="mb-8">
           <label className="font-semibold text-sm">ADD IMAGES</label>
 
-          <div className="flex gap-4 mt-3">
+          <div className="flex gap-4 mt-3 flex-wrap">
             {uploadedImages.map((src, index) => (
-              <div key={index} className="w-24 h-24 rounded-lg overflow-hidden bg-gray-200">
+              <button
+                type="button"
+                key={index}
+                onClick={() => setActiveIndex(index)}
+                className={`w-24 h-24 rounded-lg overflow-hidden bg-gray-200 relative border ${
+                  currentIndex === index ? "ring-2 ring-blue-500" : "border-transparent"
+                }`}
+              >
                 <img src={src} className="w-full h-full object-cover" />
-              </div>
+              </button>
             ))}
 
             <label className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-400 flex items-center justify-center cursor-pointer">
@@ -149,6 +194,56 @@ export default function Create({ darkMode }) {
             </label>
           </div>
         </div>
+
+        {activeImage && (
+          <div className="mb-10 grid grid-cols-3 gap-4 bg-gray-50 dark:bg-neutral-700/60 p-4 rounded-xl">
+            <div className="col-span-3 font-semibold text-sm">Adjust image</div>
+            <label className="text-xs col-span-3 flex flex-col gap-2">
+              <span>Zoom</span>
+              <input
+                type="range"
+                min="0.6"
+                max="2"
+                step="0.05"
+                value={activeEdit.scale}
+                onChange={(e) => updateEdit("scale", Number(e.target.value))}
+              />
+            </label>
+            <label className="text-xs flex flex-col gap-2">
+              <span>Offset X</span>
+              <input
+                type="range"
+                min="-30"
+                max="30"
+                step="1"
+                value={activeEdit.offsetX}
+                onChange={(e) => updateEdit("offsetX", Number(e.target.value))}
+              />
+            </label>
+            <label className="text-xs flex flex-col gap-2">
+              <span>Offset Y</span>
+              <input
+                type="range"
+                min="-30"
+                max="30"
+                step="1"
+                value={activeEdit.offsetY}
+                onChange={(e) => updateEdit("offsetY", Number(e.target.value))}
+              />
+            </label>
+            <label className="text-xs flex flex-col gap-2">
+              <span>Rotate</span>
+              <input
+                type="range"
+                min="-15"
+                max="15"
+                step="1"
+                value={activeEdit.rotation}
+                onChange={(e) => updateEdit("rotation", Number(e.target.value))}
+              />
+            </label>
+          </div>
+        )}
 
         {/* 🔥 Schedule button – thu nhỏ + đổi màu */}
         <button
@@ -175,9 +270,17 @@ export default function Create({ darkMode }) {
             <span className="font-semibold text-sm">@yourusername</span>
           </div>
 
-          <div className="w-full h-[350px] bg-gray-200 flex items-center justify-center">
-            {uploadedImages[0] ? (
-              <img src={uploadedImages[0]} className="w-full h-full object-cover" />
+          <div className="relative w-full h-[350px] bg-gray-200 flex items-center justify-center overflow-hidden">
+            <div
+              className="absolute inset-0 opacity-70 pointer-events-none"
+              style={gridOverlayStyle}
+            />
+            {activeImage ? (
+              <img
+                src={activeImage}
+                className="w-full h-full object-cover transition-transform duration-200"
+                style={{ transform: transformFor(activeEdit) }}
+              />
             ) : (
               <span className="text-gray-500 text-sm">No image uploaded</span>
             )}
