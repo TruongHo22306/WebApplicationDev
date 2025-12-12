@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import {
   FiHeart,
   FiMessageCircle,
-  FiRepeat,
   FiSend,
   FiMapPin,
   FiThumbsDown,
+  FiBookmark,
 } from "react-icons/fi";
 
 export default function FeedPost({
@@ -15,7 +15,7 @@ export default function FeedPost({
   content = "New post",
   privacy = "Public",
   attachments = {},
-  stats = { likes: 0, comments: 0, shares: 0, reposts: 0 },
+  stats = { likes: 0, comments: 0, shares: 0 },
 }) {
   const [visible, setVisible] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -25,7 +25,6 @@ export default function FeedPost({
   const [comments, setComments] = useState([]);
   const [commentCount, setCommentCount] = useState(stats.comments || 0);
   const [shareCount, setShareCount] = useState(stats.shares || 0);
-  const [repostCount, setRepostCount] = useState(stats.reposts || 0);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 50);
@@ -100,7 +99,6 @@ export default function FeedPost({
   };
 
   const handleShare = () => setShareCount((prev) => prev + 1);
-  const handleRepost = () => setRepostCount((prev) => prev + 1);
 
   const renderGallery = () => {
     if (!images.length) return null;
@@ -164,7 +162,7 @@ export default function FeedPost({
   return (
     <div
       className={
-        "bg-[#FAF7F2] text-neutral-900 dark:bg-neutral-900 dark:text-gray-100 w-full min-h-[240px] rounded-3xl mt-8 mb-10 border border-[#E3D9CE] dark:border-neutral-800 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.35)] transform transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-26px_rgba(0,0,0,0.4)] " +
+        "bg-[#F3ECE2] text-neutral-900 dark:bg-[#2B2722] dark:text-[#EDE5DA] w-full min-h-[240px] rounded-3xl mt-8 mb-10 border border-[#E3D9CE] dark:border-[#23201B] shadow-[0_24px_60px_-30px_rgba(0,0,0,0.35)] transform transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-26px_rgba(0,0,0,0.4)] " +
         (visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5")
       }
     >
@@ -200,52 +198,48 @@ export default function FeedPost({
           </div>
         )}
 
-        <div className="flex items-center space-x-8 text-[15px] mt-auto pt-6 text-neutral-600 dark:text-neutral-300">
-          <div className="flex items-center space-x-1">
+        <div className="flex items-center justify-between text-[15px] mt-auto pt-6 text-neutral-600 dark:text-neutral-300">
+          <div className="flex items-center gap-5">
             <button
-              className="flex items-center space-x-1 hover:opacity-80"
+              className="flex items-center gap-1 hover:opacity-80"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleLike();
               }}
             >
-              <FiHeart size={20} className={liked ? "text-red-500" : ""} />{" "}
+              <FiHeart size={20} className={liked ? "text-red-500" : ""} />
               <span className={liked ? "text-red-500" : ""}>{likeCount}</span>
             </button>
-          </div>
-          <div className="flex items-center space-x-1">
+
             <button
-              className="flex items-center space-x-1 hover:opacity-80"
+              className="flex items-center gap-1 hover:opacity-80"
               onClick={(e) => {
                 e.stopPropagation();
                 setCommentOpen((prev) => !prev);
               }}
             >
-              <FiMessageCircle size={20} /> <span>{commentCount}</span>
+              <FiMessageCircle size={20} />
+              <span>{commentCount}</span>
             </button>
-          </div>
-          <div className="flex items-center space-x-1">
+
             <button
-              className="flex items-center space-x-1 hover:opacity-80"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRepost();
-              }}
-            >
-              <FiRepeat size={20} /> <span>{repostCount}</span>
-            </button>
-          </div>
-          <div className="flex items-center space-x-1">
-            <button
-              className="flex items-center space-x-1 hover:opacity-80"
+              className="flex items-center gap-1 hover:opacity-80"
               onClick={(e) => {
                 e.stopPropagation();
                 handleShare();
               }}
             >
-              <FiSend size={20} /> <span>{shareCount}</span>
+              <FiSend size={20} />
+              <span>{shareCount}</span>
             </button>
           </div>
+
+          <button
+            className="p-1 rounded hover:bg-neutral-200/60 dark:hover:bg-neutral-800 transition"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FiBookmark size={20} />
+          </button>
         </div>
 
         {commentOpen && (
@@ -254,7 +248,7 @@ export default function FeedPost({
               <div className="flex-1 relative">
                 <input
                   type="text"
-                  className="flex-1 w-full rounded-full px-3 py-2 pr-20 bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-white text-sm outline-none"
+                  className="flex-1 w-full rounded-full px-3 py-2 pr-20 bg-[#6b5c51] text-white placeholder-white/70 text-sm outline-none"
                   placeholder="Write a comment..."
                   value={commentInput}
                   onChange={(e) => setCommentInput(e.target.value)}
@@ -267,15 +261,6 @@ export default function FeedPost({
                   }}
                   onClick={(e) => e.stopPropagation()}
                 />
-                <button
-                  className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-full text-sm bg-[#7d7573] text-white hover:opacity-85 transition"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddComment();
-                  }}
-                >
-                  Comment
-                </button>
               </div>
             </div>
             {comments.length > 0 ? (

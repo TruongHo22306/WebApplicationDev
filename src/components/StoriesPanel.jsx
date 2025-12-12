@@ -35,7 +35,7 @@ export default function StoriesPanel() {
         <h2 className="font-bold text-[18px]">Stories</h2>
         <Link
           to="/stories"
-          className="text-[13px] text-[#5b6cff] hover:underline font-semibold"
+          className="text-[13px] text-[#6B5C51] hover:underline font-semibold"
         >
           View all
         </Link>
