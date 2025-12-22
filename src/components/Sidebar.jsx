@@ -69,8 +69,9 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    // Slight delay to let the animation play before reloading.
-    setTimeout(() => navigate(0), 400);
+    // Jump home then reload to ensure the feed is fresh.
+    navigate("/", { replace: true });
+    setTimeout(() => navigate(0), 250);
   };
 
   const handleNavigate = (path) => {
