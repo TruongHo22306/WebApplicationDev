@@ -148,9 +148,11 @@ export default function RightProfileCard() {
               </div>
               <button
                 onClick={() => toggleFollow(item.name)}
-                className={`px-4 py-1.5 text-[12px] font-semibold rounded-full border transition transform active:scale-95 shadow-md bg-[#6B5C51] border-[#6B5C51] text-white hover:-translate-y-0.5 hover:shadow-lg ${
-                  followed[item.name] ? "opacity-85" : ""
-                }`}
+                className={`px-4 py-1.5 text-[12px] font-semibold rounded-full transition transform active:scale-95 shadow-[0_10px_22px_rgba(0,0,0,0.18)] border ${
+                  followed[item.name]
+                    ? "bg-[#6b5c51] border-[#6b5c51] text-white"
+                    : "bg-[#6b5c51] border-[#6b5c51] text-white"
+                } hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(0,0,0,0.2)]`}
               >
                 {followed[item.name] ? "Following" : "Follow"}
               </button>
@@ -191,7 +193,7 @@ export default function RightProfileCard() {
                     </p>
                   </div>
 
-                  <button className="w-full py-2 rounded-full bg-[#6B5C51] text-white font-semibold text-[14px] hover:opacity-90 transition">
+                  <button className="w-full py-2 rounded-full bg-[#6b5c51] text-white font-semibold text-[14px] hover:-translate-y-0.5 transition transform shadow-[0_10px_22px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_26px_rgba(0,0,0,0.2)]">
                     Follow
                   </button>
                 </div>

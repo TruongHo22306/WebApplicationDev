@@ -25,11 +25,11 @@ export default function MessagesPanel({ open, onClose, chats = [], onCompose }) 
         />
 
         <div
-          className={`fixed top-0 right-0 bottom-0 w-[420px] max-w-full bg-[#6b5c51] text-white shadow-[0_24px_80px_rgba(0,0,0,0.55)] border-l border-[#5d5148] transform transition-transform duration-300 ease-out ${
+          className={`fixed top-0 right-0 bottom-0 w-[420px] max-w-full bg-[#6b5c51]/95 text-white shadow-[0_24px_80px_rgba(0,0,0,0.55)] border-l border-white/10 transform transition-transform duration-300 ease-out ${
             open ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#6b5c51] sticky top-0 z-10">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#6b5c51]/95 sticky top-0 z-10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shadow-inner">
                 <FiMessageSquare />

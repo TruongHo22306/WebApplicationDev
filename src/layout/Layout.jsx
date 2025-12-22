@@ -5,6 +5,10 @@ import FriendPopup from "../components/FriendPopup";
 export default function Layout({ children, darkMode, onToggleDarkMode }) {
   const [openFriends, setOpenFriends] = useState(false);
 
+  const shellTone = darkMode
+    ? "bg-neutral-900 text-white"
+    : "bg-[#d9ccbe] text-black";
+
   const injectedChild =
     React.isValidElement(children) &&
     React.cloneElement(children, {
@@ -12,26 +16,19 @@ export default function Layout({ children, darkMode, onToggleDarkMode }) {
     });
 
   return (
-    <div
-      className={
-        "flex min-h-screen w-full transition-colors duration-300 " +
-        (darkMode ? "bg-neutral-900 text-white" : "bg-[#d9ccbe] text-black")
-      }
-    >
-      {/* SIDEBAR */}
-      <Sidebar
-        darkMode={darkMode}
-        onToggleDarkMode={onToggleDarkMode}
-      />
+    <div className={`min-h-screen w-full transition-colors duration-300 ${shellTone}`}>
+      <div className="relative min-h-screen w-full bg-inherit pl-20">
+        {/* Sidebar stays fixed for every page */}
+        <Sidebar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />
 
-      {/* MAIN CONTENT */}
-      <div className="flex-1 relative">
-        {injectedChild || children}
+        {/* Main content */}
+        <main className="relative min-h-screen bg-inherit">
+          <div className="min-h-screen w-full bg-inherit">
+            {injectedChild || children}
+          </div>
 
-        <FriendPopup
-          open={openFriends}
-          onClose={() => setOpenFriends(false)}
-        />
+          <FriendPopup open={openFriends} onClose={() => setOpenFriends(false)} />
+        </main>
       </div>
     </div>
   );

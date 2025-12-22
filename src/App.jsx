@@ -61,7 +61,14 @@ export default function App() {
             </Layout>
           }
         />
-          <Route path="/settings" element={<Settings />} />   
+        <Route
+          path="/settings"
+          element={
+            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
+              <Settings />
+            </Layout>
+          }
+        />
 
         <Route
           path="/create"

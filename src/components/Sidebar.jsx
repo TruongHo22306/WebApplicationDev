@@ -13,6 +13,7 @@ import {
   FiMoon,
 } from "react-icons/fi";
 import logoMellow from "../assets/logoMellow.png";
+import userAvatar from "../assets/anoava.jpg";
 import NotificationsPanel from "./NotificationsPanel";
 
 const notificationFeed = [
@@ -52,6 +53,17 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
     { icon: <FiPlay size={23} />, label: "Reels", path: "/reels" },
     { icon: <FiMessageCircle size={23} />, label: "Messages", path: "/messages" },
     { icon: <FiBell size={23} />, label: "Notifications", path: "/notifications" },
+    {
+      icon: (
+        <img
+          src={userAvatar}
+          alt="Your avatar"
+          className="w-7 h-7 rounded-full object-cover border border-white/40"
+        />
+      ),
+      label: "Profile",
+      path: "/profile",
+    },
   ];
 
   const handleRefresh = () => {
@@ -73,14 +85,13 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
       className={`
-        sticky top-0 h-screen
+        fixed top-0 left-0 h-screen z-40 shrink-0
         ${expanded ? "w-80 px-6" : "w-20 px-3"}
         transition-all duration-300 ease-in-out
         bg-[#6b5c51] dark:bg-[#23201B] text-white dark:text-[#EDE5DA]
-        flex flex-col py-8 overflow-hidden
-      shadow-lg
-    `}
-  >
+        flex flex-col py-8 overflow-hidden shadow-lg
+      `}
+    >
         {/* Brand logo */}
         <button
           type="button"

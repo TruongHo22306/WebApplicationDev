@@ -5,7 +5,7 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState("account");
 
   return (
-    <div className="flex w-full min-h-screen bg-[#f7f5f4] text-black px-20 py-12">
+    <div className="flex w-full min-h-screen bg-inherit text-inherit px-20 py-12">
 
       {/* LEFT SIDEBAR */}
       <div className="w-[220px] border-r pr-5">
