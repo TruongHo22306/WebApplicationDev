@@ -16,7 +16,7 @@ export default function Layout({ children, darkMode, onToggleDarkMode }) {
     });
 
   return (
-    <div className={`min-h-screen w-full transition-colors duration-300 ${shellTone}`}>
+    <div className={`min-h-screen w-full transition-colors duration-300 ${shellTone} ${darkMode ? "dark" : ""}`}>
       <div className="relative min-h-screen w-full bg-inherit pl-20">
         {/* Sidebar stays fixed for every page */}
         <Sidebar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />

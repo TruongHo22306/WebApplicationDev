@@ -15,6 +15,7 @@ import {
   FiUsers,
   FiX,
 } from "react-icons/fi";
+import ProfileMiniCard from "../components/ProfileMiniCard";
 
 const peopleResults = [
   { id: 1, name: "Alex Morgan", username: "@alexm", mutual: 12, avatar: "https://i.pravatar.cc/80?img=14" },
@@ -61,6 +62,11 @@ export default function Search() {
   const commentInputRef = useRef(null);
   const [shouldFocusComment, setShouldFocusComment] = useState(false);
   const [likedPosts, setLikedPosts] = useState({});
+  const [showMiniProfiles, setShowMiniProfiles] = useState(false);
+
+  const peoplePanelClasses = showMiniProfiles
+    ? "p-0 bg-[#d9ccbe] border-0 shadow-none rounded-none"
+    : "bg-white/80 dark:bg-neutral-800/90 backdrop-blur-xl rounded-3xl p-6 shadow-sm border border-white/20 dark:border-neutral-700";
 
   const toggleLikeComment = (mediaId, id) => {
     setCommentsByPost((prev) => {
@@ -201,77 +207,125 @@ export default function Search() {
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
             {(activeTab === "all" || activeTab === "media") && (
               <div className={`${activeTab === "media" ? "xl:col-span-12" : "xl:col-span-8"} space-y-6`}>
-                <div className="columns-2 md:columns-3 gap-4 space-y-4">
-                  {filteredMedia.map((media) => (
-                    <div
-                      key={media.id}
-                      className="group relative break-inside-avoid rounded-2xl overflow-hidden"
-                    >
+                {/* Trending */}
+                <section className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-bold text-lg text-[#2f2a25]">Trending</h2>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {filteredMedia.slice(0, 4).map((media) => (
                       <button
-                        className="w-full cursor-zoom-in"
+                        key={media.id}
+                        className="group relative rounded-2xl overflow-hidden aspect-square shadow-md"
                         onClick={() => openMedia(media, true)}
                       >
                         <img
                           src={media.src}
-                          alt="Media"
-                          className="w-full object-cover transition duration-700 group-hover:scale-110"
-                          style={{ height: media.height }}
+                          alt={media.title}
+                          className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
                         />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                          <div className="w-full flex justify-between items-center text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                            <div className="flex gap-3 text-xs font-medium">
-                              <span className="flex items-center gap-1"><FiHeart className="fill-current" /> {media.likes}</span>
-                              <span className="flex items-center gap-1"><FiMessageCircle /> {media.comments}</span>
-                            </div>
-                            <FiArrowUpRight size={20} />
-                          </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 flex items-end p-3">
+                          <p className="text-sm font-semibold text-white drop-shadow">{media.title}</p>
                         </div>
                       </button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Explore */}
+                <section className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-bold text-lg text-[#2f2a25]">Explore</h2>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filteredMedia.map((media) => (
+                      <button
+                        key={media.id}
+                        className="group relative rounded-2xl overflow-hidden h-32 shadow"
+                        onClick={() => openMedia(media, true)}
+                      >
+                        <img
+                          src={media.src}
+                          alt={media.title}
+                          className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 flex items-end p-3">
+                          <p className="text-sm font-semibold text-white drop-shadow">{media.title}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </section>
               </div>
             )}
 
             {(activeTab === "all" || activeTab === "people") && (
               <div className={`${activeTab === "people" ? "xl:col-span-8 xl:col-start-3" : "xl:col-span-4"} space-y-6 sticky top-6`}>
-                <div className="bg-white/80 dark:bg-neutral-800/90 backdrop-blur-xl rounded-3xl p-6 shadow-sm border border-white/20 dark:border-neutral-700">
-                  <div className="flex items-center justify-between mb-6">
+                <div className={peoplePanelClasses}>
+                  <div className={`flex items-center justify-between ${showMiniProfiles ? "mb-4 px-1" : "mb-6"}`}>
                     <h3 className="font-bold text-lg dark:text-white">People</h3>
                     <button
                       className="text-xs font-semibold text-[#6b5c51] hover:underline"
-                      onClick={() => setActiveTab("people")}
+                      onClick={() => {
+                        setActiveTab("people");
+                        setShowMiniProfiles((prev) => !prev);
+                      }}
                     >
-                      View all
+                      {showMiniProfiles ? "Compact view" : "View all"}
                     </button>
                   </div>
 
-                  <div className="space-y-4">
-                    {filteredPeople.map((p) => {
-                      const isFollowed = following.includes(p.id);
-                      return (
-                        <div key={p.id} className="flex items-center justify-between group">
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <img src={p.avatar} alt={p.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-white dark:ring-neutral-700" />
-                              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                  {showMiniProfiles ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredPeople.map((p) => (
+                        <ProfileMiniCard
+                          key={p.id}
+                          avatar={p.avatar}
+                          name={p.name}
+                          role="Product Designer"
+                          rating="4.9"
+                          clients={`${p.mutual}+`}
+                          price="200"
+                          onToggle={() => toggleFollow(p.id)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredPeople.map((p) => {
+                        const isFollowed = following.includes(p.id);
+                        return (
+                          <div key={p.id} className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <img
+                                  src={p.avatar}
+                                  alt={p.name}
+                                  className="w-12 h-12 rounded-full object-cover ring-2 ring-white/70 dark:ring-neutral-700"
+                                />
+                                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white"></span>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-[15px] text-neutral-900 dark:text-gray-100 leading-tight">{p.name}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">{p.username}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-bold text-sm text-neutral-900 dark:text-gray-100">{p.name}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{p.username}</p>
-                            </div>
+                            <button
+                              onClick={() => toggleFollow(p.id)}
+                              className={`px-4 h-9 rounded-full text-sm font-semibold flex items-center gap-2 shadow-[0_12px_22px_rgba(0,0,0,0.2)] border transition ${
+                                isFollowed ? "bg-[#6b5c51] text-white border-[#6b5c51]" : "bg-[#6b5c51] text-white border-[#6b5c51]"
+                              }`}
+                            >
+                              {isFollowed ? <FiCheck size={14} /> : <FiUserPlus size={14} />}
+                              {isFollowed ? "Following" : "Follow"}
+                            </button>
                           </div>
-                          <button
-                            onClick={() => toggleFollow(p.id)}
-                            className="flex items-center gap-2 px-3 h-9 rounded-full transition-all duration-200 transform bg-[#6b5c51] border border-[#6b5c51] text-white text-[13px] font-semibold shadow-[0_10px_22px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-[0_6px_16px_rgba(0,0,0,0.18)]"
-                          >
-                            {isFollowed ? <FiCheck size={14} /> : <FiUserPlus size={14} />}
-                            {isFollowed ? "Following" : "Follow"}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {activeTab === "all" && (

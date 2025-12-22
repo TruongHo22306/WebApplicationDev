@@ -3,6 +3,8 @@ import FeedPost from "../components/FeedPost";
 import StoriesPanel from "../components/StoriesPanel";
 import RightProfileCard from "../components/RightProfileCard";
 
+const POSTS_KEY = "home_posts_v1";
+
 const INITIAL_POSTS = [
   {
     id: "p-1",
@@ -55,7 +57,18 @@ const INITIAL_POSTS = [
 ];
 
 export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, onOpenFriends }) {
-  const [posts, setPosts] = useState(INITIAL_POSTS);
+  const [posts, setPosts] = useState(() => {
+    try {
+      const raw = localStorage.getItem(POSTS_KEY);
+      const stored = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(stored) && stored.length) {
+        return [...stored, ...INITIAL_POSTS];
+      }
+    } catch {
+      // ignore
+    }
+    return INITIAL_POSTS;
+  });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
 
@@ -126,7 +139,7 @@ export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, 
     <div
       className={
         "flex w-full min-h-screen transition-colors duration-300 " +
-        (darkMode ? "bg-neutral-900 text-neutral-200" : "bg-[#d9ccbe] text-neutral-900")
+        (darkMode ? "bg-[#23201B] text-[#EDE5DA]" : "bg-[#d9ccbe] text-neutral-900")
       }
     >
 

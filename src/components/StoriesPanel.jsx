@@ -43,7 +43,7 @@ export default function StoriesPanel() {
 
       <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2">
         <Link
-          to="/stories/create"
+          to="/create-story"
           className="min-w-[110px] h-[160px] rounded-3xl border-2 border-dashed border-[#7d7573]/40 dark:border-white/20 flex flex-col items-center justify-center text-sm font-semibold text-[#7d7573] dark:text-white/80 hover:border-[#5b6cff] hover:text-[#5b6cff] transition"
         >
           <div className="w-10 h-10 rounded-2xl border border-current flex items-center justify-center mb-2">

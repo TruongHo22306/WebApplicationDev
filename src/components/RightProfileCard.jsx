@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FiMessageSquare, FiLock, FiMessageCircle } from "react-icons/fi";
 import MessagesPanel from "./MessagesPanel";
 
+// TODO: Replace with backend-provided suggestions list.
 const suggestions = [
   {
     name: "Webuistylist",
@@ -114,6 +116,7 @@ const upcomingSchedule = [
 ];
 
 export default function RightProfileCard() {
+  const navigate = useNavigate();
   const [followed, setFollowed] = useState(() =>
     suggestions.reduce((acc, s) => ({ ...acc, [s.name]: false }), {})
   );
@@ -121,6 +124,10 @@ export default function RightProfileCard() {
 
   const toggleFollow = (name) => {
     setFollowed((prev) => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  const openProfile = (item) => {
+    navigate("/profile", { state: { suggestion: item } });
   };
 
   return (
@@ -133,19 +140,26 @@ export default function RightProfileCard() {
               key={item.name}
               className="group relative flex items-center gap-3 p-2 rounded-xl hover:bg-white/50 dark:hover:bg-neutral-800/70 transition-colors"
             >
-              <img
-                src={item.avatar}
-                alt={item.name}
-                className="w-11 h-11 rounded-full object-cover"
-              />
-              <div className="leading-tight flex-1">
-                <p className="font-semibold text-[14px] text-neutral-900 dark:text-neutral-100">
-                  {item.name}
-                </p>
-                <p className="text-[12px] text-neutral-500 dark:text-neutral-400">
-                  {item.location}
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => openProfile(item)}
+                className="flex items-center gap-3 flex-1 text-left"
+                title={`Open ${item.name}`}
+              >
+                <img
+                  src={item.avatar}
+                  alt={item.name}
+                  className="w-11 h-11 rounded-full object-cover"
+                />
+                <div className="leading-tight flex-1">
+                  <p className="font-semibold text-[14px] text-neutral-900 dark:text-neutral-100">
+                    {item.name}
+                  </p>
+                  <p className="text-[12px] text-neutral-500 dark:text-neutral-400">
+                    {item.location}
+                  </p>
+                </div>
+              </button>
               <button
                 onClick={() => toggleFollow(item.name)}
                 className={`px-4 py-1.5 text-[12px] font-semibold rounded-full transition transform active:scale-95 shadow-[0_10px_22px_rgba(0,0,0,0.18)] border ${

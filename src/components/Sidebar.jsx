@@ -9,12 +9,12 @@ import {
   FiMessageCircle,
   FiBell,
   FiX,
-  FiSun,
-  FiMoon,
+  FiPlus,
 } from "react-icons/fi";
 import logoMellow from "../assets/logoMellow.png";
 import userAvatar from "../assets/anoava.jpg";
 import NotificationsPanel from "./NotificationsPanel";
+import ThemeToggle from "./ThemeToggle";
 
 const notificationFeed = [
   {
@@ -51,6 +51,7 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
     { icon: <FiHome size={23} />, label: "Feed", path: "/" },
     { icon: <FiSearch size={23} />, label: "Explore", path: "/search" },
     { icon: <FiPlay size={23} />, label: "Reels", path: "/reels" },
+    {icon: <FiPlus size={23} />, label: "Create", path: "/create" },
     { icon: <FiMessageCircle size={23} />, label: "Messages", path: "/messages" },
     { icon: <FiBell size={23} />, label: "Notifications", path: "/notifications" },
     {
@@ -158,22 +159,11 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
         </div>
 
         <div className="mt-2 space-y-2">
-          <button
-            onClick={() => onToggleDarkMode && onToggleDarkMode()}
-            className={`
-            flex items-center gap-3 w-full px-3 py-3 rounded-xl
-            transition-colors duration-150
-            ${expanded ? "justify-start text-left" : "justify-center"}
-            text-white/80 hover:bg-white/10 hover:text-white
-          `}
-          >
-            {darkMode ? <FiSun size={23} /> : <FiMoon size={23} />}
-            {expanded && (
-              <span className="text-sm font-medium">
-                {darkMode ? "Light mode" : "Dark mode"}
-              </span>
-            )}
-          </button>
+          <ThemeToggle
+            darkMode={darkMode}
+            onToggle={() => onToggleDarkMode && onToggleDarkMode()}
+            expanded={expanded}
+          />
 
           <button
             onClick={() => handleNavigate("/settings")}

@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Settings from "./pages/Settings";
 import Create from "./pages/Create";
+import CreateStory from "./pages/CreateStory";
 import Profile from "./pages/Profile";
 import Stories from "./pages/Stories";
 
@@ -78,6 +79,14 @@ export default function App() {
             </Layout>
           }
         />
+        <Route
+          path="/create-story"
+          element={
+            <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
+              <CreateStory darkMode={darkMode} />
+            </Layout>
+          }
+        />
 
         <Route
           path="/stories"
@@ -92,7 +101,7 @@ export default function App() {
           path="/profile"
           element={
             <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
-              <Profile />
+              <Profile darkMode={darkMode} />
             </Layout>
           }
         />
