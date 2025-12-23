@@ -1,5 +1,8 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiPlus } from "react-icons/fi";
+
+const STORIES_KEY = "stories_feed_v1";
 
 const mockStories = [
   {
@@ -29,6 +32,23 @@ const mockStories = [
 ];
 
 export default function StoriesPanel() {
+  const [savedStories, setSavedStories] = useState([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORIES_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) setSavedStories(parsed);
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  const stories = useMemo(() => {
+    return [...savedStories, ...mockStories];
+  }, [savedStories]);
+
   return (
     <div className="w-full max-w-5xl mx-auto mb-8 px-2">
       <div className="flex items-center justify-between mb-3">
@@ -52,13 +72,17 @@ export default function StoriesPanel() {
           Create Story
         </Link>
 
-        {mockStories.map((story) => (
+        {stories.map((story) => (
           <Link
             to={`/stories?active=${story.id}`}
             key={story.id}
             className="relative min-w-[110px] h-[160px] rounded-3xl overflow-hidden bg-neutral-200 dark:bg-neutral-800 shadow-sm ring-1 ring-black/5 dark:ring-white/10 transition-transform duration-200 hover:scale-[1.02] hover:shadow-lg"
           >
-            <img src={story.cover} alt={story.author} className="w-full h-full object-cover" />
+            {story.coverType === "gradient" ? (
+              <div className="w-full h-full" style={{ backgroundImage: story.cover }} />
+            ) : (
+              <img src={story.cover} alt={story.author} className="w-full h-full object-cover" />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
 
             <div className="absolute inset-0 flex items-center justify-center">

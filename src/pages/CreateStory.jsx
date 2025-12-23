@@ -57,6 +57,7 @@ const BACKGROUND_PRESETS = [
 ];
 
 const DRAFT_KEY = "create_story_draft_v1";
+const STORIES_KEY = "stories_feed_v1";
 
 /**
  * StoryCreation.jsx
@@ -76,7 +77,6 @@ export default function StoryCreation({ darkMode = true }) {
   const [media, setMedia] = useState(null); // { src, name }
   const [mode, setMode] = useState("move"); // move | text | sticker | draw
   const [preview, setPreview] = useState(false);
-  const [showSendMenu, setShowSendMenu] = useState(false);
 
   // Objects on canvas: text and stickers
   const [objects, setObjects] = useState([]);
@@ -507,15 +507,32 @@ export default function StoryCreation({ darkMode = true }) {
   }, [strokes]);
 
   const publish = (where) => {
-    // Demo only
     const payload = {
       media: media?.name || null,
       objects,
       strokesCount: strokes.length,
       where,
     };
-    alert(`Story published (demo): ${where}\n\n` + JSON.stringify(payload, null, 2));
-    setShowSendMenu(false);
+
+    const newStory = {
+      id: `story_${Date.now()}`,
+      cover: media?.type === "gradient" ? media.gradient : media?.src,
+      coverType: media?.type === "gradient" ? "gradient" : "image",
+      author: "You",
+      avatar: "https://i.pravatar.cc/100?img=7",
+      payload,
+    };
+
+    try {
+      const raw = localStorage.getItem(STORIES_KEY);
+      const list = raw ? JSON.parse(raw) : [];
+      const next = [newStory, ...(Array.isArray(list) ? list : [])];
+      localStorage.setItem(STORIES_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage errors
+    }
+
+    navigate("/");
   };
 
   const handleClose = () => {
@@ -810,52 +827,19 @@ export default function StoryCreation({ darkMode = true }) {
             </div>
 
             {/* Bottom publish buttons */}
-            <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="mt-4 grid grid-cols-1 gap-2">
               <button
                 type="button"
                 disabled={!media}
-                onClick={() => publish("Your Story")}
-                className={`py-3 rounded-2xl text-sm font-semibold transition ${
+                onClick={() => publish("Send")}
+                className={`w-full py-3 rounded-2xl text-sm font-semibold transition ${
                   !media
                     ? "opacity-40 cursor-not-allowed bg-white/10"
                     : "bg-[#6b5c51] text-white hover:bg-[#5f5248]"
                 }`}
               >
-                Your Story
+                Send
               </button>
-              <div className="relative">
-                <button
-                  type="button"
-                  disabled={!media}
-                  onClick={() => setShowSendMenu((v) => !v)}
-                  className={`w-full py-3 rounded-2xl text-sm font-semibold transition ${
-                    !media
-                      ? "opacity-40 cursor-not-allowed bg-white/10"
-                      : "bg-[#6b5c51] text-white hover:bg-[#5f5248]"
-                  }`}
-                >
-                  Send To
-                </button>
-
-                {showSendMenu && media && (
-                  <div className="absolute right-0 bottom-[calc(100%+8px)] flex items-center gap-2 rounded-2xl border border-black/10 bg-[#f3ede5] shadow-lg px-2 py-2">
-                    <button
-                      type="button"
-                      className="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-black/5"
-                      onClick={() => publish("All")}
-                    >
-                      All
-                    </button>
-                    <button
-                      type="button"
-                      className="px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-black/5 whitespace-nowrap"
-                      onClick={() => publish("Close Friends Only")}
-                    >
-                      Close friends only
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
