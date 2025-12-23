@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import FriendPopup from "../components/FriendPopup";
 
-export default function Layout({ children, darkMode, onToggleDarkMode }) {
+export default function Layout({ children, darkMode, onToggleDarkMode, routeKey }) {
   const [openFriends, setOpenFriends] = useState(false);
 
   const shellTone = darkMode
@@ -23,9 +24,17 @@ export default function Layout({ children, darkMode, onToggleDarkMode }) {
 
         {/* Main content */}
         <main className="relative min-h-screen bg-inherit">
-          <div className="min-h-screen w-full bg-inherit">
-            {injectedChild || children}
-          </div>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={routeKey}
+              className="min-h-screen w-full bg-inherit"
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0, transition: { duration: 0.25, ease: "easeOut" } }}
+              exit={{ opacity: 0, x: -12, transition: { duration: 0.2, ease: "easeIn" } }}
+            >
+              {injectedChild || children}
+            </motion.div>
+          </AnimatePresence>
 
           <FriendPopup open={openFriends} onClose={() => setOpenFriends(false)} />
         </main>

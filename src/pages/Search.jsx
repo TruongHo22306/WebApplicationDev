@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import {
   FiArrowUpRight,
   FiCheck,
@@ -50,6 +51,18 @@ const TABS = [
   { id: "people", label: "People", icon: <FiUsers size={14} /> },
   { id: "media", label: "Media", icon: <FiImage size={14} /> },
 ];
+
+const staggerContainer = {
+  initial: {},
+  animate: {
+    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
+  },
+};
+
+const fadeItem = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
+};
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -208,16 +221,17 @@ export default function Search() {
             {(activeTab === "all" || activeTab === "media") && (
               <div className={`${activeTab === "media" ? "xl:col-span-12" : "xl:col-span-8"} space-y-6`}>
                 {/* Trending */}
-                <section className="space-y-3">
+                <motion.section className="space-y-3" variants={staggerContainer} initial="initial" animate="animate">
                   <div className="flex items-center justify-between">
                     <h2 className="font-bold text-lg text-[#2f2a25]">Trending</h2>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <motion.div className="grid grid-cols-2 md:grid-cols-4 gap-4" variants={staggerContainer}>
                     {filteredMedia.slice(0, 4).map((media) => (
-                      <button
+                      <motion.button
                         key={media.id}
                         className="group relative rounded-2xl overflow-hidden aspect-square shadow-md"
                         onClick={() => openMedia(media, true)}
+                        variants={fadeItem}
                       >
                         <img
                           src={media.src}
@@ -228,22 +242,23 @@ export default function Search() {
                         <div className="absolute inset-0 flex items-end p-3">
                           <p className="text-sm font-semibold text-white drop-shadow">{media.title}</p>
                         </div>
-                      </button>
+                      </motion.button>
                     ))}
-                  </div>
-                </section>
+                  </motion.div>
+                </motion.section>
 
                 {/* Explore */}
-                <section className="space-y-3">
+                <motion.section className="space-y-3" variants={staggerContainer} initial="initial" animate="animate">
                   <div className="flex items-center justify-between">
                     <h2 className="font-bold text-lg text-[#2f2a25]">Explore</h2>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <motion.div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4" variants={staggerContainer}>
                     {filteredMedia.map((media) => (
-                      <button
+                      <motion.button
                         key={media.id}
                         className="group relative rounded-2xl overflow-hidden h-32 shadow"
                         onClick={() => openMedia(media, true)}
+                        variants={fadeItem}
                       >
                         <img
                           src={media.src}
@@ -254,16 +269,21 @@ export default function Search() {
                         <div className="absolute inset-0 flex items-end p-3">
                           <p className="text-sm font-semibold text-white drop-shadow">{media.title}</p>
                         </div>
-                      </button>
+                      </motion.button>
                     ))}
-                  </div>
-                </section>
+                  </motion.div>
+                </motion.section>
               </div>
             )}
 
             {(activeTab === "all" || activeTab === "people") && (
               <div className={`${activeTab === "people" ? "xl:col-span-8 xl:col-start-3" : "xl:col-span-4"} space-y-6 sticky top-6`}>
-                <div className={peoplePanelClasses}>
+                <motion.div
+                  className={peoplePanelClasses}
+                  variants={staggerContainer}
+                  initial="initial"
+                  animate="animate"
+                >
                   <div className={`flex items-center justify-between ${showMiniProfiles ? "mb-4 px-1" : "mb-6"}`}>
                     <h3 className="font-bold text-lg dark:text-white">People</h3>
                     <button
@@ -278,26 +298,27 @@ export default function Search() {
                   </div>
 
                   {showMiniProfiles ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" variants={staggerContainer}>
                       {filteredPeople.map((p) => (
-                        <ProfileMiniCard
-                          key={p.id}
-                          avatar={p.avatar}
-                          name={p.name}
-                          role="Product Designer"
-                          rating="4.9"
-                          clients={`${p.mutual}+`}
-                          price="200"
-                          onToggle={() => toggleFollow(p.id)}
-                        />
+                        <motion.div key={p.id} variants={fadeItem}>
+                          <ProfileMiniCard
+                            avatar={p.avatar}
+                            name={p.name}
+                            role="Product Designer"
+                            rating="4.9"
+                            clients={`${p.mutual}+`}
+                            price="200"
+                            onToggle={() => toggleFollow(p.id)}
+                          />
+                        </motion.div>
                       ))}
-                    </div>
+                    </motion.div>
                   ) : (
-                    <div className="space-y-4">
+                    <motion.div className="space-y-4" variants={staggerContainer}>
                       {filteredPeople.map((p) => {
                         const isFollowed = following.includes(p.id);
                         return (
-                          <div key={p.id} className="flex items-center justify-between">
+                          <motion.div key={p.id} className="flex items-center justify-between" variants={fadeItem}>
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <img
@@ -321,27 +342,33 @@ export default function Search() {
                               {isFollowed ? <FiCheck size={14} /> : <FiUserPlus size={14} />}
                               {isFollowed ? "Following" : "Follow"}
                             </button>
-                          </div>
+                          </motion.div>
                         );
                       })}
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
 
                 {activeTab === "all" && (
-                  <div className="bg-white/50 dark:bg-neutral-800/50 rounded-3xl p-6 border border-white/20 dark:border-neutral-700">
+                  <motion.div
+                    className="bg-white/50 dark:bg-neutral-800/50 rounded-3xl p-6 border border-white/20 dark:border-neutral-700"
+                    variants={staggerContainer}
+                    initial="initial"
+                    animate="animate"
+                  >
                     <h3 className="font-bold text-sm text-900 tracking-wider mb-">Trending Tags</h3>
-                    <div className="flex flex-wrap gap-2">
+                    <motion.div className="flex flex-wrap gap-2" variants={staggerContainer}>
                       {filteredTags.map((tag) => (
-                        <button
+                        <motion.button
                           key={tag}
                           className="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-neutral-700 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-[#5b6cff] hover:scale-105 transition-all shadow-sm"
+                          variants={fadeItem}
                         >
                           <FiHash className="text-[#6b5c51]" size={12} /> {tag}
-                        </button>
+                        </motion.button>
                       ))}
-                    </div>
-                  </div>
+                    </motion.div>
+                  </motion.div>
                 )}
               </div>
             )}
@@ -381,7 +408,7 @@ export default function Search() {
                     <p className="text-xs text-[#4b4239]/70">{selectedMedia.title}</p>
                   </div>
                 </div>
-                <button className="flex items-center gap-2 px-3 h-9 rounded-full bg-[#6b5c51] border border-[#6b5c51] text-white text-[13px] font-semibold shadow-[0_10px_22px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(0,0,0,0.2)] transition">
+                <button className="px-4 py-1.5 text-[12px] font-semibold rounded-full transition transform active:scale-95 shadow-[0_10px_22px_rgba(0,0,0,0.18)] border bg-[#6b5c51] border-[#6b5c51] text-white hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(0,0,0,0.2)]">
                   Follow
                 </button>
               </header>

@@ -8,6 +8,8 @@ import {
   FiBookmark,
 } from "react-icons/fi";
 
+import SharePopup from "./SharePopup";
+
 export default function FeedPost({
   author = "You",
   avatar = "https://i.pravatar.cc/60?img=7",
@@ -25,6 +27,7 @@ export default function FeedPost({
   const [comments, setComments] = useState([]);
   const [commentCount, setCommentCount] = useState(stats.comments || 0);
   const [shareCount, setShareCount] = useState(stats.shares || 0);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 50);
@@ -226,7 +229,7 @@ export default function FeedPost({
               className="flex items-center gap-1 hover:opacity-80"
               onClick={(e) => {
                 e.stopPropagation();
-                handleShare();
+                setShareOpen(true);
               }}
             >
               <FiSend size={20} />
@@ -315,6 +318,16 @@ export default function FeedPost({
             )}
           </div>
         )}
+
+
+        <SharePopup
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          onShare={() => {
+            handleShare();
+            setShareOpen(false);
+          }}
+        />
       </div>
     </div>
   );

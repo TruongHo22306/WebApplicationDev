@@ -67,12 +67,9 @@ const INITIAL_THREADS = {
 };
 
 const NEW_MESSAGE_USERS = [
-  { id: "u1", name: "Alicia Bennett", avatar: "https://i.pravatar.cc/80?img=12" },
-  { id: "u2", name: "Aiden Park", avatar: "https://i.pravatar.cc/80?img=20" },
-  { id: "u3", name: "Allison Brooks", avatar: "https://i.pravatar.cc/80?img=41" },
-  { id: "u4", name: "Amir Hassan", avatar: "https://i.pravatar.cc/80?img=56" },
-  { id: "u5", name: "Anya Kim", avatar: "https://i.pravatar.cc/80?img=27" },
-  { id: "u6", name: "Arielle Tran", avatar: "https://i.pravatar.cc/80?img=31" },
+  { id: "u1", name: "Alexander Jameson", avatar: "https://i.pravatar.cc/80?img=31" },
+  { id: "u2", name: "Sarah Connors", avatar: "https://i.pravatar.cc/80?img=5" },
+  { id: "u3", name: "Design Team", avatar: "https://i.pravatar.cc/80?img=8" },
 ];
 
 export default function Messages({ darkMode = false }) {
@@ -178,6 +175,19 @@ export default function Messages({ darkMode = false }) {
     return NEW_MESSAGE_USERS.filter((u) => u.name.toLowerCase().includes(q));
   }, [newMessageQuery]);
 
+  const handleStartChat = () => {
+    if (!selectedRecipient) return;
+    const match = INITIAL_CHATS.find(
+      (chat) => chat.name.toLowerCase() === selectedRecipient.name.toLowerCase()
+    );
+    if (match) {
+      setActiveChatId(match.id);
+    }
+    setShowNewMessage(false);
+    setSelectedRecipient(null);
+    setNewMessageQuery("");
+  };
+
   const activeChat =
     INITIAL_CHATS.find((c) => c.id === activeChatId) || INITIAL_CHATS[0];
   const activeMessages = threads[activeChatId] || [];
@@ -190,7 +200,14 @@ export default function Messages({ darkMode = false }) {
           <div className="flex items-center justify-between">
             <span className="font-bold text-lg text-[#2c241b] dark:text-[#EDE5DA]">Messages</span>
             <div className="flex gap-2">
-              <IconButton icon={<FiEdit size={22} />} onClick={() => setShowNewMessage(true)} />
+              <button
+                type="button"
+                className="p-2 rounded-full hover:bg-white/10 transition"
+                title="New chat"
+                onClick={() => setShowNewMessage(true)}
+              >
+                <FiEdit size={22} />
+              </button>
             </div>
           </div>
 
@@ -407,6 +424,7 @@ export default function Messages({ darkMode = false }) {
                     : "bg-[#d6c9bb] text-[#8b7d72] cursor-not-allowed"
                 }`}
                 disabled={!selectedRecipient}
+                onClick={handleStartChat}
               >
                 Chat
               </button>
