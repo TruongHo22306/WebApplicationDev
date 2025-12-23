@@ -19,6 +19,7 @@ const POSTS_KEY = "home_posts_v1";
 
 export default function Create({ darkMode }) {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [caption, setCaption] = useState("");
   const [hashtags, setHashtags] = useState([]);
   const [tagInput, setTagInput] = useState("");
@@ -610,47 +611,59 @@ export default function Create({ darkMode }) {
           </div>
         )}
 
-        {/* POST BUTTON */}
+        POST BUTTON
         <button
           type="button"
           className="w-[200px] mx-auto block py-3 rounded-full text-white text-lg font-medium shadow-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ backgroundColor: sidebarColor }}
-          disabled={captionTooLong}
-          onClick={() => {
+          disabled={captionTooLong || loading}
+          onClick={async () => {
+            const token = localStorage.getItem("token"); // 1. Retrieve the real token
+            
+            if (!token) {
+              alert("You must be logged in to post.");
+              return navigate("/login");
+            }
+
             const baseContent = caption.trim() || "New post";
             const tagLine = hashtags.length
               ? `\n\n${hashtags.map((tag) => `#${tag}`).join(" ")}`
               : "";
-            const trimmedLocation = location.trim();
-            const newPost = {
-              id: `local-${Date.now()}`,
-              author: "You",
-              avatar: "https://i.pravatar.cc/60?img=14",
-              content: baseContent + tagLine,
-              createdAt: "Just now",
-              privacy: audience,
-              attachments: {
-                images: uploadedImages.map((img) => img.src),
-                layout: uploadedImages.length > 1 ? "grid" : "single",
-                ...(trimmedLocation ? { location: trimmedLocation } : {}),
-              },
-              stats: { likes: 0, comments: 0, shares: 0, reposts: 0 },
-            };
+            
+            setLoading(true);
 
             try {
-              const raw = localStorage.getItem(POSTS_KEY);
-              const stored = raw ? JSON.parse(raw) : [];
-              const safeStored = Array.isArray(stored) ? stored : [];
-              localStorage.setItem(POSTS_KEY, JSON.stringify([newPost, ...safeStored]));
-              localStorage.removeItem(DRAFT_KEY);
-            } catch {
-              // ignore
-            }
+              // 2. Call your protected backend route
+              const response = await fetch("http://localhost:5000/api/posts", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}` // 3. Include the token in headers
+                },
+                body: JSON.stringify({
+                  content: baseContent + tagLine,
+                  image: uploadedImages.length > 0 ? uploadedImages[0].src : "", // Sends the first image URL
+                  location: location.trim()
+                }),
+              });
 
-            navigate("/");
+              if (response.ok) {
+                // Success: Clear the draft and go to feed
+                localStorage.removeItem(DRAFT_KEY);
+                navigate("/");
+              } else {
+                const errorData = await response.json();
+                alert(errorData.msg || "Failed to save post to server");
+              }
+            } catch (err) {
+              console.error("Post Error:", err);
+              alert("Connection error. Is the backend running?");
+            } finally {
+              setLoading(false);
+            }
           }}
         >
-          Post
+          {loading ? "Posting..." : "Post"}
         </button>
       </div>
 

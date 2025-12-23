@@ -15,8 +15,10 @@ export default function Login() {
   const validatePassword = (value) =>
     /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value) && /[^A-Za-z0-9]/.test(value);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // 1. Client-side Validation
     const nextErrors = {
       email: validateEmail(email) ? "" : "Email must end with @gmail.com",
       password: validatePassword(password)
@@ -24,27 +26,41 @@ export default function Login() {
         : "Password needs uppercase, lowercase, number, and special character",
     };
 
-    if (!nextErrors.email && !nextErrors.password) {
-      try {
-        const raw = localStorage.getItem("signup_credentials");
-        const stored = raw ? JSON.parse(raw) : null;
-        if (stored?.email === email.trim() && stored?.password !== password) {
-          nextErrors.password = "Wrong password";
-        }
-      } catch {
-        // ignore storage errors
-      }
-    }
-
     setErrors(nextErrors);
     if (nextErrors.email || nextErrors.password) return;
+
     setLoading(true);
 
-    setTimeout(() => {
-      localStorage.setItem("authToken", "demo-token");
-      navigate("/");
+    try {
+      // 2. Call the Backend API
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // 3. Success: Store the JWT token
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        
+        // 4. Redirect to Home/Feed
+        navigate("/");
+      } else {
+        // 5. Handle Backend Errors (e.g., "Invalid Credentials")
+        setErrors({ ...nextErrors, server: data.msg || "Login failed" });
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      setErrors({ ...nextErrors, server: "Connection error. Is the server running?" });
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -153,6 +169,12 @@ export default function Login() {
               Forgot Password
             </button>
           </div>
+          
+          {errors.server && (
+            <p className="text-center text-red-600 text-sm mb-4 bg-red-50 p-2 rounded">
+              {errors.server}
+            </p>
+          )}
 
           {/* SIGN IN BUTTON */}
           <button
