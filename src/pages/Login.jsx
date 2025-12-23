@@ -1,15 +1,43 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "../components/Logo.jsx";
-import bgImage from "../assets/bglogin1.png";
+import bgImage from "../assets/background.png";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({ email: "", password: "" });
   const navigate = useNavigate();
+
+  const validateEmail = (value) => value.trim().endsWith("@gmail.com");
+  const validatePassword = (value) =>
+    /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value) && /[^A-Za-z0-9]/.test(value);
 
   const handleLogin = (e) => {
     e.preventDefault();
+    const nextErrors = {
+      email: validateEmail(email) ? "" : "Email must end with @gmail.com",
+      password: validatePassword(password)
+        ? ""
+        : "Password needs uppercase, lowercase, number, and special character",
+    };
+
+    if (!nextErrors.email && !nextErrors.password) {
+      try {
+        const raw = localStorage.getItem("signup_credentials");
+        const stored = raw ? JSON.parse(raw) : null;
+        if (stored?.email === email.trim() && stored?.password !== password) {
+          nextErrors.password = "Wrong password";
+        }
+      } catch {
+        // ignore storage errors
+      }
+    }
+
+    setErrors(nextErrors);
+    if (nextErrors.email || nextErrors.password) return;
     setLoading(true);
 
     setTimeout(() => {
@@ -20,12 +48,15 @@ export default function Login() {
   };
 
   return (
-    <div className="w-full min-h-screen flex bg-white dark:bg-[#1a1a1a] overflow-hidden">
+    <div className="w-full min-h-screen flex bg-[#d9ccbe]  dark:bg-[#1a1a1a] overflow-hidden">
 
       {/* LEFT IMAGE PANEL — slide left */}
-      <div className="hidden lg:flex w-1/2 relative rounded-r-3xl overflow-hidden animate-slideLeft">
-        <img src={bgImage} alt="bg"
-          className="absolute inset-0 w-full h-full object-cover" />
+      <div className="hidden lg:flex lg:w-3/5 relative rounded-r-1xl overflow-hidden animate-slideLeft z-10">
+        <img
+          src={bgImage}
+          alt="bg"
+          className="absolute inset-0 w-full h-full object-cover animate-wavy-bg"
+        />
 
         <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-black/10 to-transparent" />
         <div className="absolute inset-0 bg-purple-500/10 mix-blend-overlay" />
@@ -38,7 +69,7 @@ export default function Login() {
       </div>
 
       {/* RIGHT FORM PANEL — slide right */}
-      <div className="flex flex-col justify-center items-center w-full lg:w-1/2 px-8 lg:px-20 animate-slideRight">
+      <div className="flex flex-col justify-center items-center w-full lg:w-2/5 px-8 lg:px-20 animate-slideRight bg-white/40 backdrop-blur-10xl dark:bg-[#1a1a1a]/80 z-10">
 
         <div className="animate-fade">
           <Logo />
@@ -59,8 +90,16 @@ export default function Login() {
           <input
             type="email"
             placeholder="Enter your email"
-            className="w-full mt-1 mb-5 p-3 rounded-lg bg-[#ece8e6] dark:bg-[#2b2b2b]"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+            }}
+            className="w-full mt-1 p-3 rounded-lg bg-[#ece8e6] dark:bg-[#2b2b2b]"
           />
+          {errors.email && (
+            <p className="text-xs text-red-600 mb-5">{errors.email}</p>
+          )}
 
           {/* PASSWORD */}
           <label className="font-semibold text-gray-700 dark:text-gray-200">Password</label>
@@ -69,7 +108,12 @@ export default function Login() {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              className="w-full mt-1 mb-3 p-3 rounded-lg bg-[#ece8e6] dark:bg-[#2b2b2b] pr-12"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
+              }}
+              className="w-full mt-1 p-3 rounded-lg bg-[#ece8e6] dark:bg-[#2b2b2b] pr-12"
             />
 
             {/* SHOW/HIDE PASSWORD — giữ nguyên bản bạn thích */}
@@ -94,6 +138,9 @@ export default function Login() {
               )}
             </button>
           </div>
+          {errors.password && (
+            <p className="text-xs text-red-600 mb-3">{errors.password}</p>
+          )}
 
           {/* REMEMBER */}
           <div className="flex justify-between items-center mb-6">

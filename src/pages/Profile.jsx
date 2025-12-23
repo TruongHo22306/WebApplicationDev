@@ -16,11 +16,13 @@ import {
   FiHash,
   FiUser,
   FiBookmark,
+  FiPaperclip,
 } from "react-icons/fi";
 import { FaYoutube, FaGithub } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import Uploader from "../components/Uploader";
 import FeedPost from "../components/FeedPost";
+import { MdFiberPin } from "react-icons/md";
 
 const POSTS_KEY = "home_posts_v1";
 
@@ -93,9 +95,11 @@ const STAT_LIST = {
 
 export default function Profile({ darkMode = false }) {
   const location = useLocation();
+  const isViewingSuggestion = Boolean(location.state?.suggestion);
   const [profile, setProfile] = useState(DEFAULT_PROFILE);
   const [draftProfile, setDraftProfile] = useState(DEFAULT_PROFILE);
   const [isEditing, setIsEditing] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   const [avatarSrc, setAvatarSrc] = useState(avatarUrl);
   const [coverSrc, setCoverSrc] = useState(coverUrl);
@@ -275,6 +279,7 @@ export default function Profile({ darkMode = false }) {
       setDraftProfile(DEFAULT_PROFILE);
       setAvatarSrc(avatarUrl);
       setProfileStats({ posts: 938, followers: 3586, following: 2659 });
+      setIsFollowing(false);
       return;
     }
 
@@ -297,6 +302,7 @@ export default function Profile({ darkMode = false }) {
       followers: suggestion.stats?.followers ?? 0,
       following: suggestion.stats?.following ?? 0,
     });
+    setIsFollowing(false);
   }, [location.state]);
 
   const formatStat = (value) =>
@@ -439,14 +445,26 @@ export default function Profile({ darkMode = false }) {
                   </button>
                 </>
               ) : (
-                <button
-                  type="button"
-                  className="px-3 py-1.5 rounded-full bg-[#d9ccbe] border border-[#cfc2b4] text-xs font-medium flex items-center gap-2 dark:bg-[#3a332c] dark:border-[#4a4036] dark:text-[#EDE5DA]"
-                  onClick={handleStartEdit}
-                >
-                  <FiEdit2 />
-                  Edit profile
-                </button>
+                <>
+                  {isViewingSuggestion ? (
+                    <button
+                      type="button"
+                      className="px-4 py-1.5 rounded-full bg-[#6b5c51] border border-[#6b5c51] text-xs font-semibold text-white transition transform active:scale-95 shadow-[0_10px_22px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(0,0,0,0.2)]"
+                      onClick={() => setIsFollowing((prev) => !prev)}
+                    >
+                      {isFollowing ? "Following" : "Follow"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 rounded-full bg-[#d9ccbe] border border-[#cfc2b4] text-xs font-medium flex items-center gap-2 dark:bg-[#3a332c] dark:border-[#4a4036] dark:text-[#EDE5DA]"
+                      onClick={handleStartEdit}
+                    >
+                      <FiEdit2 />
+                      Edit profile
+                    </button>
+                  )}
+                </>
               )}
             </div>
 
@@ -614,7 +632,7 @@ function PostCard({ post, onTogglePin }) {
           className="text-xs text-neutral-500 hover:text-neutral-900 transition flex items-center gap-1 dark:text-[#B89B6C] dark:hover:text-[#EDE5DA]"
           onClick={() => onTogglePin(post.id)}
         >
-          <FiBookmark size={12} />
+          <FiPaperclip size={12} />
           {post.pinned ? "Unpin" : "Pin"}
         </button>
       </div>

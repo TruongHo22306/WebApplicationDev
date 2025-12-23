@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import bgSU from "../assets/bgSU3.png";
 
 export default function Signup() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [form, setForm] = useState({
     first: "",
@@ -40,6 +42,15 @@ export default function Signup() {
 
     setLoading(true);
     setTimeout(() => {
+      try {
+        localStorage.setItem(
+          "signup_credentials",
+          JSON.stringify({ email: form.email.trim(), password: form.password })
+        );
+      } catch {
+        // ignore storage errors
+      }
+      setSuccessMessage("Sign up successful! Redirecting to login...");
       navigate("/login");
     }, 800);
   };
@@ -47,14 +58,17 @@ export default function Signup() {
   return (
     <div className="w-full min-h-screen flex items-center justify-center relative overflow-hidden">
 
-      {/* Animated gradient background (NO BLUR) */}
-      <div className="apple-bg"></div>
+      {/* Image background */}
+      <div
+        className="absolute inset-0 bg-center bg-cover saturate-110 contrast-110 animate-wavy-bg"
+        style={{ backgroundImage: `url(${bgSU})`, imageRendering: "auto" }}
+      />
 
-      <div className="absolute inset-0 bg-black/10 dark:bg-black/40"></div>
+      <div className="absolute inset-0 bg-black/0 dark:bg-black/20"></div>
 
       {/* Signup Card */}
       <div className="signup-card relative z-10 w-[480px] max-w-[90%] 
-                      rounded-xl shadow-2xl px-10 py-10 fadeZoom">
+                      rounded-xl shadow-2xl px-10 py-10 fadeZoom bg-[#8a5a38]/85 backdrop-blur-2xl">
 
         {/* Close Button */}
         <div className="flex justify-end">
@@ -71,6 +85,11 @@ export default function Signup() {
         <h1 className="text-3xl font-serif text-center mb-6 dark:text-white">
           Create an account
         </h1>
+        {successMessage && (
+          <p className="mb-4 rounded-lg bg-green-100 text-green-700 text-sm px-4 py-2 text-center">
+            {successMessage}
+          </p>
+        )}
 
         <form onSubmit={submit}>
           <div className="flex gap-4 mb-4">

@@ -11,6 +11,7 @@ import {
   FiCheck,
   FiEdit2,
   FiEdit,
+  FiX,
 } from "react-icons/fi";
 
 const INITIAL_CHATS = [
@@ -65,6 +66,15 @@ const INITIAL_THREADS = {
   3: [],
 };
 
+const NEW_MESSAGE_USERS = [
+  { id: "u1", name: "Alicia Bennett", avatar: "https://i.pravatar.cc/80?img=12" },
+  { id: "u2", name: "Aiden Park", avatar: "https://i.pravatar.cc/80?img=20" },
+  { id: "u3", name: "Allison Brooks", avatar: "https://i.pravatar.cc/80?img=41" },
+  { id: "u4", name: "Amir Hassan", avatar: "https://i.pravatar.cc/80?img=56" },
+  { id: "u5", name: "Anya Kim", avatar: "https://i.pravatar.cc/80?img=27" },
+  { id: "u6", name: "Arielle Tran", avatar: "https://i.pravatar.cc/80?img=31" },
+];
+
 export default function Messages({ darkMode = false }) {
   const [activeChatId, setActiveChatId] = useState(1);
   const [activeTab, setActiveTab] = useState("Pinned");
@@ -73,6 +83,9 @@ export default function Messages({ darkMode = false }) {
   const [threads, setThreads] = useState(INITIAL_THREADS);
   const [replyTo, setReplyTo] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showNewMessage, setShowNewMessage] = useState(false);
+  const [newMessageQuery, setNewMessageQuery] = useState("");
+  const [selectedRecipient, setSelectedRecipient] = useState(null);
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -159,6 +172,12 @@ export default function Messages({ darkMode = false }) {
     return sortedChats;
   }, [activeTab, sortedChats]);
 
+  const filteredNewUsers = useMemo(() => {
+    const q = newMessageQuery.trim().toLowerCase();
+    if (!q) return NEW_MESSAGE_USERS;
+    return NEW_MESSAGE_USERS.filter((u) => u.name.toLowerCase().includes(q));
+  }, [newMessageQuery]);
+
   const activeChat =
     INITIAL_CHATS.find((c) => c.id === activeChatId) || INITIAL_CHATS[0];
   const activeMessages = threads[activeChatId] || [];
@@ -171,7 +190,7 @@ export default function Messages({ darkMode = false }) {
           <div className="flex items-center justify-between">
             <span className="font-bold text-lg text-[#2c241b] dark:text-[#EDE5DA]">Messages</span>
             <div className="flex gap-2">
-              <IconButton icon={<FiEdit size={22} />} />
+              <IconButton icon={<FiEdit size={22} />} onClick={() => setShowNewMessage(true)} />
             </div>
           </div>
 
@@ -314,6 +333,87 @@ export default function Messages({ darkMode = false }) {
           </form>
         </footer>
       </main>
+
+      {showNewMessage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setShowNewMessage(false)}
+        >
+          <div
+            className="w-[420px] max-w-[92vw] rounded-3xl bg-[#f3ede5] text-[#4b4239] shadow-2xl border border-[#cbbdaa]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#cbbdaa]">
+              <div className="font-semibold">Tin nhắn mới</div>
+              <button
+                type="button"
+                onClick={() => setShowNewMessage(false)}
+                className="p-2 rounded-full hover:bg-black/5 transition"
+                title="Close"
+              >
+                <FiX size={18} />
+              </button>
+            </div>
+
+            <div className="px-5 py-3 border-b border-[#cbbdaa]">
+              <div className="flex items-center gap-3 text-sm">
+                <span className="font-semibold">Tới:</span>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm..."
+                  value={newMessageQuery}
+                  onChange={(e) => setNewMessageQuery(e.target.value)}
+                  className="flex-1 bg-transparent outline-none text-sm placeholder:text-[#8b7d72]"
+                />
+              </div>
+            </div>
+
+            <div className="h-[320px] overflow-y-auto px-4 py-3 text-sm text-[#6b5c51]">
+              {filteredNewUsers.length === 0 ? (
+                <div className="h-full rounded-2xl border border-[#cbbdaa] bg-white/60 flex items-center justify-center text-[#8b7d72]">
+                  Không tìm thấy người dùng
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredNewUsers.map((user) => (
+                    <button
+                      key={user.id}
+                      type="button"
+                      onClick={() => setSelectedRecipient(user)}
+                      className={`w-full flex items-center gap-3 rounded-2xl border px-3 py-2 transition ${
+                        selectedRecipient?.id === user.id
+                          ? "border-[#6b5c51] bg-[#6b5c51]/15 text-[#4b4239]"
+                          : "border-[#d6c9bb] bg-white/70 hover:bg-white text-[#4b4239]"
+                      }`}
+                    >
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="h-9 w-9 rounded-full object-cover border border-[#d6c9bb]"
+                      />
+                      <span className="text-sm font-medium">{user.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="px-5 pb-5">
+              <button
+                type="button"
+                className={`w-full rounded-2xl py-3 font-semibold transition ${
+                  selectedRecipient
+                    ? "bg-[#6b5c51] text-white hover:bg-[#5f5248]"
+                    : "bg-[#d6c9bb] text-[#8b7d72] cursor-not-allowed"
+                }`}
+                disabled={!selectedRecipient}
+              >
+                Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

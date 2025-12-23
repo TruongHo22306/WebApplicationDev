@@ -44,6 +44,7 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
   const [expanded, setExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -76,6 +77,7 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
 
   const handleNavigate = (path) => {
     if (!path) return;
+    setShowCreateMenu(false);
     navigate(path);
   };
 
@@ -134,6 +136,49 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
                 );
               }
 
+              if (item.label === "Create") {
+                return (
+                  <div key={item.label} className="relative">
+                    <button
+                      onClick={() => setShowCreateMenu((prev) => !prev)}
+                      className={`
+                      flex items-center gap-3 w-full px-3 py-3 rounded-xl
+                      transition-colors duration-150
+                      ${expanded ? "justify-start text-left" : "justify-center"}
+                      ${
+                        active
+                          ? "bg-white/20 text-white dark:text-[#EDE5DA]"
+                          : "text-white/90 hover:bg-white/10 dark:hover:bg-[#2B2722] dark:text-[#EDE5DA]"
+                      }
+                    `}
+                      title={item.label}
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                      {expanded && <span className="text-sm font-medium">{item.label}</span>}
+                    </button>
+
+                    {showCreateMenu && expanded && (
+                      <div className="mt-2 ml-10 mr-3 space-y-2">
+                        <button
+                          type="button"
+                          onClick={() => handleNavigate("/create")}
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium bg-white/15 hover:bg-white/20 transition"
+                        >
+                          Post
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleNavigate("/create-story")}
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium bg-white/15 hover:bg-white/20 transition"
+                        >
+                          Create story
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               return (
                 <button
                   key={item.label}
@@ -148,11 +193,9 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
                       : "text-white/90 hover:bg-white/10 dark:hover:bg-[#2B2722] dark:text-[#EDE5DA]"
                   }
                 `}
-              >
-                <span className="text-lg">{item.icon}</span>
-                {expanded && (
-                    <span className="text-sm font-medium">{item.label}</span>
-                  )}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  {expanded && <span className="text-sm font-medium">{item.label}</span>}
                 </button>
               );
             })}
