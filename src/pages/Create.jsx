@@ -12,10 +12,8 @@ import {
   FiAlertCircle,
   FiSmile,
 } from "react-icons/fi";
-import { MdEmojiEmotions } from "react-icons/md";
 
 const DRAFT_KEY = "create_post_draft_v1";
-const POSTS_KEY = "home_posts_v1";
 
 export default function Create({ darkMode }) {
   const navigate = useNavigate();
@@ -78,9 +76,6 @@ export default function Create({ darkMode }) {
       setAudience(d.audience ?? "Public");
       setLocation(d.location ?? "");
       setShowGrid(Boolean(d.showGrid));
-
-      // Images cannot be restored from blob URLs reliably after refresh
-      // Keep UI stable by not restoring uploadedImages
     } catch {
       // ignore
     }
@@ -121,30 +116,46 @@ export default function Create({ darkMode }) {
     setHashtags((prev) => prev.filter((t) => t !== tag));
   };
 
-  /* ---------------- IMAGE UPLOAD ---------------- */
+  /* ---------------- IMAGE UPLOAD (UPDATED: BASE64) ---------------- */
 
-  const handleImageUpload = (e) => {
+  // Helper: Convert file to Base64 string
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    const mapped = files.map((f) => ({
-      id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-      src: URL.createObjectURL(f),
-      fileName: f.name,
-    }));
+    // Convert all selected files to Base64
+    const base64Images = await Promise.all(
+      files.map(async (file) => {
+        const base64 = await convertToBase64(file);
+        return {
+          id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+          src: base64, // Saves the actual image data string, not a blob link
+          fileName: file.name,
+        };
+      })
+    );
 
     setUploadedImages((prev) => {
-      const next = [...prev, ...mapped];
+      const next = [...prev, ...base64Images];
       setActiveIndex(next.length - 1);
       return next;
     });
 
     setImageEdits((prev) => [
       ...prev,
-      ...mapped.map(() => ({ ...defaultEditState })),
+      ...base64Images.map(() => ({ ...defaultEditState })),
     ]);
 
-    // clear input so same file can be reselected
+    // clear input
     e.target.value = "";
   };
 
@@ -192,13 +203,7 @@ export default function Create({ darkMode }) {
   const removeImage = (index) => {
     if (index < 0 || index >= uploadedImages.length) return;
 
-    // revoke blob url
-    try {
-      URL.revokeObjectURL(uploadedImages[index].src);
-    } catch {
-      // ignore
-    }
-
+    // No need to revokeObjectURL since we are using Base64 strings now
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
     setImageEdits((prev) => prev.filter((_, i) => i !== index));
 
@@ -226,7 +231,6 @@ export default function Create({ darkMode }) {
     const next = caption.slice(0, start) + emoji + caption.slice(end);
     setCaption(next);
 
-    // restore cursor
     requestAnimationFrame(() => {
       el.focus();
       const pos = start + emoji.length;
@@ -283,7 +287,6 @@ export default function Create({ darkMode }) {
             </div>
           </div>
 
-          {/* Audience */}
           <div className="flex items-center gap-2">
             <span className="text-xs opacity-90">Audience</span>
             <select
@@ -337,7 +340,6 @@ export default function Create({ darkMode }) {
                   type="button"
                   onClick={() => insertEmoji(emo)}
                   className="px-3 py-2 rounded-lg bg-white/70 dark:bg-neutral-800 hover:opacity-90 transition text-lg"
-                  aria-label={`insert ${emo}`}
                 >
                   {emo}
                 </button>
@@ -611,14 +613,14 @@ export default function Create({ darkMode }) {
           </div>
         )}
 
-        POST BUTTON
+        {/* POST BUTTON */}
         <button
           type="button"
           className="w-[200px] mx-auto block py-3 rounded-full text-white text-lg font-medium shadow-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ backgroundColor: sidebarColor }}
           disabled={captionTooLong || loading}
           onClick={async () => {
-            const token = localStorage.getItem("token"); // 1. Retrieve the real token
+            const token = localStorage.getItem("token");
             
             if (!token) {
               alert("You must be logged in to post.");
@@ -633,22 +635,21 @@ export default function Create({ darkMode }) {
             setLoading(true);
 
             try {
-              // 2. Call your protected backend route
               const response = await fetch("http://localhost:5000/api/posts", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
-                  "Authorization": `Bearer ${token}` // 3. Include the token in headers
+                  "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
                   content: baseContent + tagLine,
-                  image: uploadedImages.length > 0 ? uploadedImages[0].src : "", // Sends the first image URL
+                  // Now sends the Base64 string instead of a blob URL
+                  image: uploadedImages.length > 0 ? uploadedImages[0].src : "", 
                   location: location.trim()
                 }),
               });
 
               if (response.ok) {
-                // Success: Clear the draft and go to feed
                 localStorage.removeItem(DRAFT_KEY);
                 navigate("/");
               } else {
@@ -717,7 +718,6 @@ export default function Create({ darkMode }) {
               <span className="text-gray-500 text-sm">No image uploaded</span>
             )}
 
-            {/* Dots indicator like Instagram */}
             {uploadedImages.length > 1 && (
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                 {uploadedImages.map((_, i) => (
@@ -753,7 +753,7 @@ export default function Create({ darkMode }) {
         </div>
 
         <div className="mt-4 text-xs opacity-70 text-left">
-          Note: uploaded images are not restored after refresh because browser blob URLs expire.
+          Note: Images are now saved safely to the server.
         </div>
       </div>
     </div>

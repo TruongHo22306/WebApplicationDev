@@ -3,25 +3,37 @@ import FeedPost from "../components/FeedPost";
 import StoriesPanel from "../components/StoriesPanel";
 import RightProfileCard from "../components/RightProfileCard";
 
-// Logic Change: We no longer need INITIAL_POSTS or POSTS_KEY constants
-
 export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, onOpenFriends }) {
-  // Logic Change: Initialize state for live database data
+  // 1. State for Data & UI
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
 
+  // 2. Refs for Pull-to-Refresh logic
   const pullStartRef = useRef(0);
   const pullingRef = useRef(false);
 
-  // Logic Change: Function to fetch from your Backend
+  // 3. Get Current User Info (for Delete permission)
+  const userString = localStorage.getItem("user");
+
+
+  // Parse it into an object and get the ID safely
+  const currentUserId = userString ? JSON.parse(userString).id : null;
+  const token = localStorage.getItem("token");
+
+  // --- BACKEND INTEGRATION ---
+
+  // Fetch Posts from MongoDB
   const fetchLivePosts = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/posts");
       const data = await response.json();
+      
       if (response.ok) {
         setPosts(data);
+      } else {
+        console.error("Server Error:", data);
       }
     } catch (err) {
       console.error("Fetch error:", err);
@@ -31,15 +43,41 @@ export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, 
     }
   };
 
-  // Logic Change: Load database posts on mount
+  // Initial Load
   useEffect(() => {
     fetchLivePosts();
   }, []);
 
-  // Logic Change: Refresh now pulls from DB instead of a dummy "Dexter" post
+  // Delete Post Function
+  const handleDelete = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}` // Required by backend 'protect' middleware
+        }
+      });
+
+      if (res.ok) {
+        // Optimistic UI update: Remove post immediately from screen
+        setPosts((prev) => prev.filter((post) => post._id !== postId));
+      } else {
+        const errorData = await res.json();
+        alert(errorData.msg || "Failed to delete post");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Could not connect to server");
+    }
+  };
+
+  // --- PULL TO REFRESH LOGIC (Preserved from your code) ---
+
   const triggerRefresh = useCallback(() => {
     setIsRefreshing(true);
-    fetchLivePosts();
+    fetchLivePosts(); // Calls the real backend now
   }, []);
 
   useEffect(() => {
@@ -82,6 +120,8 @@ export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, 
     };
   }, [isRefreshing, pullDistance, triggerRefresh]);
 
+  // --- RENDER ---
+
   return (
     <div
       className={
@@ -91,10 +131,12 @@ export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, 
     >
       <div className="flex-1">
         <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row justify-center gap-8 px-4 lg:px-8 mt-6">
+          
+          {/* LEFT: MAIN FEED */}
           <div className="flex-1 max-w-[820px] w-full mx-auto transition-all duration-300 p-6">
             <StoriesPanel />
 
-            {/* Refresh Indicator - UI Kept Exactly */}
+            {/* Refresh Indicator */}
             <div
               className={`overflow-hidden transition-all duration-200 ${
                 pullDistance > 0 || isRefreshing ? "max-h-14 mb-3" : "max-h-0 mb-0"
@@ -117,7 +159,7 @@ export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, 
               <h2 className="font-semibold tracking-tight text-[20px]">Feeds</h2>
             </div>
 
-            {/* Logic Change: Map through DB results */}
+            {/* POST LIST */}
             {loading ? (
               <div className="text-center py-10 opacity-70">Loading feed...</div>
             ) : posts.length === 0 ? (
@@ -128,23 +170,36 @@ export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, 
               </div>
             ) : (
               posts.map((post) => (
-                <FeedPost
-                  key={post._id} // MongoDB uses _id
-                  author={post.user ? `${post.user.first} ${post.user.last}` : "Anonymous"}
-                  avatar={post.user?.avatar || "https://i.pravatar.cc/150"}
-                  content={post.content}
-                  createdAt={new Date(post.createdAt).toLocaleDateString()}
-                  privacy={post.privacy || "Public"}
-                  attachments={{
-                    images: post.image ? [post.image] : [],
-                    layout: "single"
-                  }}
-                  stats={post.stats || { likes: 0, comments: 0, shares: 0 }}
-                />
+                <div key={post._id} className="relative group">
+                  <FeedPost
+                    // Use optional chaining (?.) to prevent crashes if user data is missing
+                    author={post.user ? `${post.user.first} ${post.user.last}` : "Anonymous"}
+                    avatar={post.user?.avatar || "https://i.pravatar.cc/150"}
+                    content={post.content}
+                    createdAt={post.createdAt ? new Date(post.createdAt).toLocaleDateString() : "Just now"}
+                    privacy={post.privacy || "Public"}
+                    attachments={{
+                      images: post.image ? [post.image] : [],
+                      layout: "single"
+                    }}
+                    stats={post.stats || { likes: 0, comments: 0, shares: 0 }}
+                  />
+
+                  {/* DELETE BUTTON: Only visible if YOU are the author */}
+                  {post.user && (post.user._id === currentUserId || post.user === currentUserId) && (
+                    <button
+                      onClick={() => handleDelete(post._id)}
+                      className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
               ))
             )}
           </div>
 
+          {/* RIGHT: PROFILE CARD */}
           <div className="w-full lg:w-[320px] flex-shrink-0 pt-6">
             <RightProfileCard />
           </div>
