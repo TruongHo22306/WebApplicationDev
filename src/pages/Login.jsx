@@ -1,44 +1,91 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "../components/Logo.jsx";
-import bgImage from "../assets/bglogin1.png";
+import bgImage from "../assets/background.png";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const validateEmail = (value) => value.trim().endsWith("@gmail.com");
+  const validatePassword = (value) =>
+    /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value) && /[^A-Za-z0-9]/.test(value);
+
+  const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // 1. Client-side Validation
+    const nextErrors = {
+      email: validateEmail(email) ? "" : "Email must end with @gmail.com",
+      password: validatePassword(password)
+        ? ""
+        : "Password needs uppercase, lowercase, number, and special character",
+    };
+
+    setErrors(nextErrors);
+    if (nextErrors.email || nextErrors.password) return;
+
     setLoading(true);
 
-    setTimeout(() => {
-      localStorage.setItem("authToken", "demo-token");
-      navigate("/");
+    try {
+      // 2. Call the Backend API
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // 3. Success: Store the JWT token
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        
+        // 4. Redirect to Home/Feed
+        navigate("/");
+      } else {
+        // 5. Handle Backend Errors (e.g., "Invalid Credentials")
+        setErrors({ ...nextErrors, server: data.msg || "Login failed" });
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      setErrors({ ...nextErrors, server: "Connection error. Is the server running?" });
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
-    <div className="w-full min-h-screen flex bg-white dark:bg-[#1a1a1a] overflow-hidden">
+    <div className="w-full min-h-screen flex bg-[#d9ccbe]  dark:bg-[#1a1a1a] overflow-hidden">
 
-      {/* LEFT IMAGE PANEL — slide left */}
-      <div className="hidden lg:flex w-1/2 relative rounded-r-3xl overflow-hidden animate-slideLeft">
-        <img src={bgImage} alt="bg"
-          className="absolute inset-0 w-full h-full object-cover" />
+      {/* LEFT IMAGE PANEL - slide left */}
+      <div className="hidden lg:flex lg:w-3/5 relative rounded-r-1xl overflow-hidden animate-slideLeft z-10">
+        <img
+          src={bgImage}
+          alt="bg"
+          className="absolute inset-0 w-full h-full object-cover animate-wavy-bg"
+        />
 
         <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-black/10 to-transparent" />
         <div className="absolute inset-0 bg-purple-500/10 mix-blend-overlay" />
 
         <div className="z-10 mt-auto mb-20 ml-10 text-white drop-shadow-2xl animate-fade">
           <h1 className="text-5xl font-light leading-tight">
-            Get<br />Everything<br />You want
+            Belive<br />In<br />Yourself
           </h1>
         </div>
       </div>
 
-      {/* RIGHT FORM PANEL — slide right */}
-      <div className="flex flex-col justify-center items-center w-full lg:w-1/2 px-8 lg:px-20 animate-slideRight">
+      {/* RIGHT FORM PANEL - slide right */}
+      <div className="flex flex-col justify-center items-center w-full lg:w-2/5 px-8 lg:px-20 animate-slideRight bg-white/40 backdrop-blur-10xl dark:bg-[#1a1a1a]/80 z-10">
 
         <div className="animate-fade">
           <Logo />
@@ -59,8 +106,16 @@ export default function Login() {
           <input
             type="email"
             placeholder="Enter your email"
-            className="w-full mt-1 mb-5 p-3 rounded-lg bg-[#ece8e6] dark:bg-[#2b2b2b]"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+            }}
+            className="w-full mt-1 p-3 rounded-lg bg-[#ece8e6] dark:bg-[#2b2b2b]"
           />
+          {errors.email && (
+            <p className="text-xs text-red-600 mb-5">{errors.email}</p>
+          )}
 
           {/* PASSWORD */}
           <label className="font-semibold text-gray-700 dark:text-gray-200">Password</label>
@@ -69,10 +124,15 @@ export default function Login() {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              className="w-full mt-1 mb-3 p-3 rounded-lg bg-[#ece8e6] dark:bg-[#2b2b2b] pr-12"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
+              }}
+              className="w-full mt-1 p-3 rounded-lg bg-[#ece8e6] dark:bg-[#2b2b2b] pr-12"
             />
 
-            {/* SHOW/HIDE PASSWORD — giữ nguyên bản bạn thích */}
+            {/* SHOW/HIDE PASSWORD */}
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -94,6 +154,9 @@ export default function Login() {
               )}
             </button>
           </div>
+          {errors.password && (
+            <p className="text-xs text-red-600 mb-3">{errors.password}</p>
+          )}
 
           {/* REMEMBER */}
           <div className="flex justify-between items-center mb-6">
@@ -106,6 +169,12 @@ export default function Login() {
               Forgot Password
             </button>
           </div>
+          
+          {errors.server && (
+            <p className="text-center text-red-600 text-sm mb-4 bg-red-50 p-2 rounded">
+              {errors.server}
+            </p>
+          )}
 
           {/* SIGN IN BUTTON */}
           <button
@@ -120,7 +189,7 @@ export default function Login() {
 
           {/* SIGNUP LINK */}
           <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-300">
-            Don’t have an account?
+            Don't have an account?
             <Link to="/signup" className="ml-1 text-blue-600 hover:underline">
               Sign up
             </Link>

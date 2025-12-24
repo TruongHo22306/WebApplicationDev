@@ -33,10 +33,10 @@ export default function SuggestionList() {
             <button
               onClick={() => toggleFollow(user.id)}
               className={
-                "px-4 py-[6px] border rounded-full text-sm transition-all duration-200 hover:scale-105 active:scale-95 " +
+                "px-4 py-[7px] rounded-full text-sm font-semibold transition-all duration-200 transform shadow-[0_10px_22px_rgba(0,0,0,0.18)] border " +
                 (user.following
-                  ? "bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-gray-100 border-transparent"
-                  : "bg-white dark:bg-neutral-800 text-gray-800 dark:text-gray-100 hover:bg-blue-500 hover:text-white hover:shadow-md")
+                  ? "bg-[#837568] border-[#837568] text-white hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(0,0,0,0.2)]"
+                  : "bg-[#6b5c51] border-[#6b5c51] text-white hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(0,0,0,0.2)]")
               }
             >
               {user.following ? "Following" : "Follow"}

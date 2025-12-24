@@ -13,13 +13,13 @@ const avatarFor = (seed) => `https://i.pravatar.cc/40?u=${seed}`;
 
 export default function ChatHoverPanel() {
   return (
-    <div className="fixed right-0 top-0 h-full group z-40">
+    <div className="fixed right-0 bottom-0 group z-40">
       {/* Invisible hover strip */}
-      <div className="absolute right-0 top-0 h-full w-3 cursor-pointer" />
+      <div className="absolute right-0 bottom-0 h-40 w-3 cursor-pointer" />
 
       <div
         className="
-          absolute right-3 top-[80px] w-80 max-h-[80vh] overflow-y-auto
+          absolute right-3 bottom-16 w-80 max-h-[70vh] overflow-y-auto
           bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl border border-white/60 dark:border-neutral-700
           opacity-0 pointer-events-none translate-x-3
           group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-x-0

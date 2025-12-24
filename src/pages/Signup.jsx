@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import bgSU from "../assets/bgSU3.png";
 
-export default function Signup() {
+export default function Signup() { //createSUform
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [form, setForm] = useState({
     first: "",
@@ -20,12 +22,24 @@ export default function Signup() {
 
   const validate = () => {
     let e = {};
+    
+    // Email validation
     if (!form.email.trim()) e.email = "Email required";
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Invalid email";
+    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Invalid email"; //thõa yêu cầu của Email
 
-    if (!form.password) e.password = "Password required";
-    else if (form.password.length < 6)
+    // Simplified Password Validation (matching Login.jsx exactly)
+    const isPasswordComplex = /[A-Z]/.test(form.password) && 
+                              /[a-z]/.test(form.password) && 
+                              /\d/.test(form.password) && 
+                              /[^A-Za-z0-9]/.test(form.password);
+
+    if (!form.password) {
+      e.password = "Password required";
+    } else if (form.password.length < 6) {
       e.password = "At least 6 characters";
+    } else if (!isPasswordComplex) {
+      e.password = "Needs uppercase, lowercase, number, and special character";
+    }
 
     if (form.confirm !== form.password)
       e.confirm = "Passwords do not match";
@@ -34,27 +48,63 @@ export default function Signup() {
     return Object.keys(e).length === 0;
   };
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setLoading(true);
-    setTimeout(() => {
-      navigate("/login");
-    }, 800);
+    setErrors({}); // Reset any previous errors
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first: form.first,
+          last: form.last,
+          email: form.email.trim(),
+          password: form.password,
+          phone: form.phone
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Success: Store the JWT token returned by the backend
+        localStorage.setItem("token", data.token);
+        setSuccessMessage("Sign up successful! Redirecting to login...");
+        
+        // Wait briefly so the user can see the success message
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
+      } else {
+        // Server-side error (e.g., email already in use)
+        setErrors({ server: data.msg || "Registration failed" });
+      }
+    } catch (err) {
+      console.error("Connection error:", err);
+      setErrors({ server: "Cannot connect to server. Ensure backend is running on port 5000." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center relative overflow-hidden">
 
-      {/* Animated gradient background (NO BLUR) */}
-      <div className="apple-bg"></div>
+      {/* Image background */}
+      <div
+        className="absolute inset-0 bg-center bg-cover saturate-110 contrast-110 animate-wavy-bg"
+        style={{ backgroundImage: `url(${bgSU})`, imageRendering: "auto" }}
+      />
 
-      <div className="absolute inset-0 bg-black/10 dark:bg-black/40"></div>
+      <div className="absolute inset-0 bg-black/0 dark:bg-black/20"></div>
 
       {/* Signup Card */}
       <div className="signup-card relative z-10 w-[480px] max-w-[90%] 
-                      rounded-xl shadow-2xl px-10 py-10 fadeZoom">
+                      rounded-xl shadow-2xl px-10 py-10 fadeZoom bg-[#8a5a38]/85 backdrop-blur-2xl">
 
         {/* Close Button */}
         <div className="flex justify-end">
@@ -71,6 +121,11 @@ export default function Signup() {
         <h1 className="text-3xl font-serif text-center mb-6 dark:text-white">
           Create an account
         </h1>
+        {successMessage && (
+          <p className="mb-4 rounded-lg bg-green-100 text-green-700 text-sm px-4 py-2 text-center">
+            {successMessage}
+          </p>
+        )}
 
         <form onSubmit={submit}>
           <div className="flex gap-4 mb-4">

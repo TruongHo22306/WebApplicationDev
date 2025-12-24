@@ -3,11 +3,12 @@
 @tailwind utilities;
 
 html {
-  font-size: 17px; /* tăng font */
+  font-size: 17px; /* increase font size */
 }
 
 body {
   background-color: #f7f5f4;
+  overflow-x: hidden;
 }
 
 @keyframes fade {
@@ -187,8 +188,8 @@ body {
 
 /* Remove blur from card as well */
 .signup-card {
-  background: rgba(255, 255, 255, 0.75);  /* Không blur, chỉ mờ nhẹ */
-  backdrop-filter: none; /* Tắt blur */
+  background: rgba(255, 255, 255, 0.75);  /* no blur, slight opacity */
+  backdrop-filter: none; /* disable blur */
 }
 
 /* Ripple effect */
@@ -277,7 +278,7 @@ body {
   }
 }
 
-/* Big heart pop khi double-tap */
+/* Big heart pop on double-tap */
 .reel-heart-pop {
   animation: reel-heart-pop 0.6s ease-out forwards;
 }
@@ -297,7 +298,7 @@ body {
   }
 }
 
-/* Ẩn scrollbar trong container reels (cho đẹp hơn) */
+/* Hide scrollbar in reels container (cleaner look) */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -331,6 +332,34 @@ body {
   }
 }
 
+@keyframes wavyBg {
+  0% {
+    transform: scale(1.05) translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.08) translate(-1.8%, 1.2%) rotate(0.3deg);
+  }
+  100% {
+    transform: scale(1.05) translate(1.8%, -1.2%) rotate(-0.3deg);
+  }
+}
+
+@keyframes wavyRipple {
+  0% {
+    filter: saturate(1) contrast(1);
+  }
+  50% {
+    filter: saturate(1.05) contrast(1.02);
+  }
+  100% {
+    filter: saturate(1) contrast(1);
+  }
+}
+
+.animate-wavy-bg {
+  animation: wavyBg 24s ease-in-out infinite, wavyRipple 7s ease-in-out infinite;
+}
+
 @keyframes bigHeart {
   0% { transform: scale(0.3); opacity: 0; }
   50% { transform: scale(1); opacity: 0.9; }
@@ -340,4 +369,3 @@ body {
 .animate-bigHeart {
   animation: bigHeart 0.7s ease forwards;
 }
-
