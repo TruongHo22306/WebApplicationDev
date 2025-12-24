@@ -22,12 +22,12 @@ export default function Create({ darkMode }) {
   const [hashtags, setHashtags] = useState([]);
   const [tagInput, setTagInput] = useState("");
 
-  const [uploadedImages, setUploadedImages] = useState([]); // [{ id, src, fileName }]
-  const [imageEdits, setImageEdits] = useState([]); // [{ scale, offsetX, offsetY, alt }]
+  const [uploadedImages, setUploadedImages] = useState([]); // [{ id, src, file, fileName }]
+  const [imageEdits, setImageEdits] = useState([]); 
   const [activeIndex, setActiveIndex] = useState(-1);
 
   const [isDraft, setIsDraft] = useState(false);
-  const [audience, setAudience] = useState("Public"); // Public | Close Friends
+  const [audience, setAudience] = useState("Public");
   const [location, setLocation] = useState("");
 
   const [showGrid, setShowGrid] = useState(false);
@@ -63,13 +63,11 @@ export default function Create({ darkMode }) {
   const MAX_CAPTION = 2200;
 
   /* ---------------- DRAFT: LOAD ---------------- */
-
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
       const d = JSON.parse(raw);
-
       setCaption(d.caption ?? "");
       setHashtags(Array.isArray(d.hashtags) ? d.hashtags : []);
       setIsDraft(Boolean(d.isDraft));
@@ -82,7 +80,6 @@ export default function Create({ darkMode }) {
   }, []);
 
   /* ---------------- DRAFT: AUTOSAVE ---------------- */
-
   useEffect(() => {
     const payload = {
       caption,
@@ -101,7 +98,6 @@ export default function Create({ darkMode }) {
   }, [caption, hashtags, isDraft, audience, location, showGrid]);
 
   /* ---------------- TAGS ---------------- */
-
   const tagIsDuplicate = (tag) => hashtags.includes(tag);
 
   const handleAddTag = (tag) => {
@@ -116,9 +112,8 @@ export default function Create({ darkMode }) {
     setHashtags((prev) => prev.filter((t) => t !== tag));
   };
 
-  /* ---------------- IMAGE UPLOAD (UPDATED: BASE64) ---------------- */
-
-  // Helper: Convert file to Base64 string
+  /* ---------------- IMAGE UPLOAD (UPDATED) ---------------- */
+  // Helper: Convert file to Base64 string just for PREVIEW
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -132,30 +127,30 @@ export default function Create({ darkMode }) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    // Convert all selected files to Base64
-    const base64Images = await Promise.all(
+    // Convert to Base64 for preview, BUT keep the 'file' object for upload
+    const processedImages = await Promise.all(
       files.map(async (file) => {
         const base64 = await convertToBase64(file);
         return {
           id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-          src: base64, // Saves the actual image data string, not a blob link
+          src: base64, // Used for UI preview
+          file: file,  // <--- IMPORTANT: The raw file for FormData
           fileName: file.name,
         };
       })
     );
 
     setUploadedImages((prev) => {
-      const next = [...prev, ...base64Images];
+      const next = [...prev, ...processedImages];
       setActiveIndex(next.length - 1);
       return next;
     });
 
     setImageEdits((prev) => [
       ...prev,
-      ...base64Images.map(() => ({ ...defaultEditState })),
+      ...processedImages.map(() => ({ ...defaultEditState })),
     ]);
 
-    // clear input
     e.target.value = "";
   };
 
@@ -202,11 +197,8 @@ export default function Create({ darkMode }) {
 
   const removeImage = (index) => {
     if (index < 0 || index >= uploadedImages.length) return;
-
-    // No need to revokeObjectURL since we are using Base64 strings now
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
     setImageEdits((prev) => prev.filter((_, i) => i !== index));
-
     setActiveIndex((prev) => {
       const nextLen = uploadedImages.length - 1;
       if (nextLen <= 0) return -1;
@@ -216,9 +208,7 @@ export default function Create({ darkMode }) {
   };
 
   /* ---------------- EMOJI ---------------- */
-
   const emojiList = ["😀","😅","😍","😂","🥳","👍","👏","❤️","🔥","🎉","🤝","😊"];
-
   const insertEmoji = (emoji) => {
     const el = captionRef.current;
     if (!el) {
@@ -227,10 +217,8 @@ export default function Create({ darkMode }) {
     }
     const start = el.selectionStart ?? caption.length;
     const end = el.selectionEnd ?? caption.length;
-
     const next = caption.slice(0, start) + emoji + caption.slice(end);
     setCaption(next);
-
     requestAnimationFrame(() => {
       el.focus();
       const pos = start + emoji.length;
@@ -238,525 +226,338 @@ export default function Create({ darkMode }) {
     });
   };
 
-  /* ---------------- VALIDATION HELPERS ---------------- */
-
+  /* ---------------- VALIDATION ---------------- */
   const captionTooLong = caption.length > MAX_CAPTION;
   const nearLimit = caption.length >= MAX_CAPTION - 100 && !captionTooLong;
   const tagsFull = hashtags.length >= MAX_TAGS;
-
   const hashtagsText = hashtags.length ? hashtags.map((t) => `#${t}`).join(" ") : "";
 
   /* ---------------- UI ---------------- */
-
   return (
     <div className={darkMode ? "min-h-screen w-full bg-neutral-900 text-white" : "min-h-screen w-full bg-[#d9ccbe] text-black"}>
       <div className="max-w-6xl mx-auto w-full grid lg:grid-cols-[minmax(0,1.05fr)_320px] gap-6 px-4 py-6">
+        
         {/* LEFT FORM */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl p-8 shadow-lg">
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold">New Post</h1>
-            <p className="text-sm opacity-70 mt-1">
-              Create your post 
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={isDraft}
-                onChange={() => setIsDraft((v) => !v)}
-              />
-              <span className="text-sm opacity-80">Draft</span>
-            </label>
-          </div>
-        </div>
-
-        {/* PROFILE BAR */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <img
-              src="https://i.pravatar.cc/60?img=14"
-              className="w-12 h-12 rounded-full"
-              alt="profile"
-            />
-            <div className="leading-tight">
-              <span className="font-semibold block">@Username</span>
-              <span className="text-xs opacity-70">Posting to {audience}</span>
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl font-semibold">New Post</h1>
+              <p className="text-sm opacity-70 mt-1">Create your post</p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs opacity-90">Audience</span>
-            <select
-              value={audience}
-              onChange={(e) => setAudience(e.target.value)}
-              className="text-sm rounded-lg px-3 py-2 bg-gray-100 dark:bg-neutral-700 outline-none"
-            >
-              <option>Public</option>
-              <option>Close Friends</option>
-              <option>Private</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Location */}
-        <div className="mb-6">
-          <label className="font-semibold text-sm flex items-center gap-2">
-            <FiMapPin /> LOCATION
-          </label>
-          <input
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Add location (optional)"
-            className="w-full mt-2 px-4 py-3 rounded-lg bg-gray-100 dark:bg-neutral-700 outline-none"
-          />
-        </div>
-
-        {/* CAPTION */}
-        <div className="mb-6">
-          <label className="font-semibold text-sm flex items-center justify-between">
-            <span>CAPTION</span>
-
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowEmoji((v) => !v)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-neutral-700 hover:opacity-90 transition"
-                title="Emoji"
-              >
-                <FiSmile size={20} />
-                <span className="text-xs opacity-80">Emoji</span>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" checked={isDraft} onChange={() => setIsDraft((v) => !v)} />
+                <span className="text-sm opacity-80">Draft</span>
+              </label>
+            </div>
+          </div>
+
+          {/* PROFILE BAR */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <img src="https://i.pravatar.cc/60?img=14" className="w-12 h-12 rounded-full" alt="profile" />
+              <div className="leading-tight">
+                <span className="font-semibold block">@Username</span>
+                <span className="text-xs opacity-70">Posting to {audience}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs opacity-90">Audience</span>
+              <select value={audience} onChange={(e) => setAudience(e.target.value)} className="text-sm rounded-lg px-3 py-2 bg-gray-100 dark:bg-neutral-700 outline-none">
+                <option>Public</option>
+                <option>Close Friends</option>
+                <option>Private</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="mb-6">
+            <label className="font-semibold text-sm flex items-center gap-2">
+              <FiMapPin /> LOCATION
+            </label>
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Add location (optional)"
+              className="w-full mt-2 px-4 py-3 rounded-lg bg-gray-100 dark:bg-neutral-700 outline-none"
+            />
+          </div>
+
+          {/* CAPTION */}
+          <div className="mb-6">
+            <label className="font-semibold text-sm flex items-center justify-between">
+              <span>CAPTION</span>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setShowEmoji((v) => !v)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-neutral-700 hover:opacity-90 transition" title="Emoji">
+                  <FiSmile size={20} />
+                  <span className="text-xs opacity-80">Emoji</span>
+                </button>
+              </div>
+            </label>
+
+            {showEmoji && (
+              <div className="mt-2 p-3 rounded-xl bg-gray-100 dark:bg-neutral-700 flex flex-wrap gap-2">
+                {emojiList.map((emo) => (
+                  <button key={emo} type="button" onClick={() => insertEmoji(emo)} className="px-3 py-2 rounded-lg bg-white/70 dark:bg-neutral-800 hover:opacity-90 transition text-lg">
+                    {emo}
+                  </button>
+                ))}
+                <button type="button" onClick={() => setShowEmoji(false)} className="ml-auto text-xs opacity-70 hover:opacity-100 transition">
+                  Close
+                </button>
+              </div>
+            )}
+
+            <textarea
+              ref={captionRef}
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              className={`w-full mt-2 p-4 h-32 rounded-lg bg-gray-100 dark:bg-neutral-700 outline-none ${captionTooLong ? "ring-2 ring-red-500" : ""}`}
+              placeholder="Write your caption..."
+            />
+
+            <div className="flex justify-between mt-2 items-center">
+              <div className="flex items-center gap-2">
+                <span className={`text-sm ${captionTooLong ? "text-red-500" : nearLimit ? "text-orange-500" : "opacity-70"}`}>
+                  {caption.length}/{MAX_CAPTION}
+                </span>
+                {captionTooLong && (
+                  <span className="text-xs text-red-500 flex items-center gap-1">
+                    <FiAlertCircle /> Too long
+                  </span>
+                )}
+              </div>
+              <span className="text-xs opacity-70">Tip: captions and tags update preview instantly.</span>
+            </div>
+          </div>
+
+          {/* TAGS */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <label className="font-semibold text-sm">TAGS</label>
+              <span className={`text-xs ${tagsFull ? "text-red-500" : "opacity-70"}`}>
+                {hashtags.length}/{MAX_TAGS}
+              </span>
+            </div>
+            <div className="mt-2 bg-gray-100 dark:bg-neutral-700 p-3 rounded-xl">
+              <input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (!tagInput.trim()) return;
+                    handleAddTag(tagInput.trim());
+                    setTagInput("");
+                  }
+                }}
+                placeholder={tagsFull ? "Tag limit reached" : "Add hashtags and press Enter"}
+                disabled={tagsFull}
+                className="bg-transparent outline-none w-full disabled:opacity-50"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {hashtags.map((tag) => (
+                <span key={tag} className="px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-200 rounded-full flex items-center gap-2 text-sm">
+                  #{tag}
+                  <FiX className="cursor-pointer" onClick={() => handleRemoveTag(tag)} title="Remove" />
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 text-sm opacity-70">Try:</div>
+            <div className="flex gap-2 mt-1 flex-wrap">
+              {suggestedTags.map((tag) => {
+                const disabled = tagsFull || tagIsDuplicate(tag);
+                return (
+                  <button key={tag} type="button" onClick={() => handleAddTag(tag)} disabled={disabled} className={`px-3 py-1 rounded-full text-sm transition ${disabled ? "bg-orange-100/60 text-orange-600/60 cursor-not-allowed" : "bg-orange-100 text-orange-600 hover:opacity-90"}`}>
+                    #{tag}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ADD IMAGES */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <label className="font-semibold text-sm">ADD IMAGES</label>
+              <button type="button" onClick={() => setShowGrid((v) => !v)} className={`flex items-center gap-2 px-3 py-2 rounded-lg transition ${showGrid ? "bg-black text-white dark:bg-white dark:text-black" : "bg-gray-100 dark:bg-neutral-700 hover:opacity-90"}`} title="Toggle grid overlay">
+                <FiGrid />
+                <span className="text-xs">Grid</span>
               </button>
             </div>
-          </label>
-
-          {showEmoji && (
-            <div className="mt-2 p-3 rounded-xl bg-gray-100 dark:bg-neutral-700 flex flex-wrap gap-2">
-              {emojiList.map((emo) => (
-                <button
-                  key={emo}
-                  type="button"
-                  onClick={() => insertEmoji(emo)}
-                  className="px-3 py-2 rounded-lg bg-white/70 dark:bg-neutral-800 hover:opacity-90 transition text-lg"
-                >
-                  {emo}
-                </button>
+            <div className="flex gap-4 mt-3 flex-wrap">
+              {uploadedImages.map((img, index) => (
+                <div key={img.id} className="relative">
+                  <button type="button" onClick={() => setActiveIndex(index)} className={`w-24 h-24 rounded-lg overflow-hidden bg-gray-200 relative border transition ${currentIndex === index ? "ring-2 ring-blue-500 border-transparent" : "border-transparent hover:opacity-90"}`} title={img.fileName}>
+                    <img src={img.src} className="w-full h-full object-cover" alt="" />
+                  </button>
+                  <div className="absolute -top-2 -right-2 flex flex-col gap-1">
+                    <button type="button" className="w-7 h-7 rounded-full bg-white dark:bg-neutral-800 shadow flex items-center justify-center hover:opacity-90" onClick={() => moveImage(index, -1)} disabled={index === 0} title="Move up">
+                      <FiChevronUp />
+                    </button>
+                    <button type="button" className="w-7 h-7 rounded-full bg-white dark:bg-neutral-800 shadow flex items-center justify-center hover:opacity-90" onClick={() => moveImage(index, +1)} disabled={index === uploadedImages.length - 1} title="Move down">
+                      <FiChevronDown />
+                    </button>
+                    <button type="button" className="w-7 h-7 rounded-full bg-white dark:bg-neutral-800 shadow flex items-center justify-center hover:opacity-90" onClick={() => removeImage(index)} title="Remove">
+                      <FiX />
+                    </button>
+                  </div>
+                </div>
               ))}
-              <button
-                type="button"
-                onClick={() => setShowEmoji(false)}
-                className="ml-auto text-xs opacity-70 hover:opacity-100 transition"
-              >
-                Close
-              </button>
+              <label className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-400 flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+                <FiPlus size={24} />
+                <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
+              </label>
+            </div>
+            {uploadedImages.length > 0 && (
+              <div className="mt-3 text-xs opacity-70 flex items-center gap-2">
+                <FiImage />
+                Carousel order is the thumbnail order. Use the arrows to reorder.
+              </div>
+            )}
+          </div>
+
+          {/* EDIT IMAGE + ALT TEXT */}
+          {activeImage && (
+            <div className="mb-10 grid grid-cols-3 gap-4 bg-gray-50 dark:bg-neutral-700/60 p-4 rounded-xl">
+              <div className="col-span-3 font-semibold text-sm flex items-center justify-between">
+                <span>Edit image</span>
+                <span className="text-xs opacity-70">{currentIndex + 1} of {uploadedImages.length}</span>
+              </div>
+              <label className="text-xs col-span-3 flex flex-col gap-2">
+                <span>Zoom</span>
+                <input type="range" min="0.6" max="2" step="0.05" value={activeEdit.scale} onChange={(e) => updateEdit("scale", Number(e.target.value))} />
+              </label>
+              <label className="text-xs flex flex-col gap-2">
+                <span>Slide (X)</span>
+                <input type="range" min="-30" max="30" step="1" value={activeEdit.offsetX} onChange={(e) => updateEdit("offsetX", Number(e.target.value))} />
+              </label>
+              <label className="text-xs flex flex-col gap-2">
+                <span>Slide (Y)</span>
+                <input type="range" min="-30" max="30" step="1" value={activeEdit.offsetY} onChange={(e) => updateEdit("offsetY", Number(e.target.value))} />
+              </label>
+              <div className="text-xs flex flex-col gap-2">
+                <span>Grid</span>
+                <button type="button" onClick={() => setShowGrid((v) => !v)} className={`px-3 py-2 rounded-lg transition ${showGrid ? "bg-black text-white dark:bg-white dark:text-black" : "bg-gray-200 dark:bg-neutral-800 hover:opacity-90"}`}>
+                  {showGrid ? "On" : "Off"}
+                </button>
+              </div>
+              <label className="text-xs col-span-3 flex flex-col gap-2">
+                <span>Alt text (accessibility)</span>
+                <input value={activeEdit.alt || ""} onChange={(e) => updateEdit("alt", e.target.value)} placeholder="Describe the image for accessibility (optional)" className="px-4 py-3 rounded-lg bg-gray-100 dark:bg-neutral-800 outline-none" />
+              </label>
             </div>
           )}
 
-          <textarea
-            ref={captionRef}
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            className={`w-full mt-2 p-4 h-32 rounded-lg bg-gray-100 dark:bg-neutral-700 outline-none ${
-              captionTooLong ? "ring-2 ring-red-500" : ""
-            }`}
-            placeholder="Write your caption..."
-          />
+          {/* POST BUTTON (UPDATED for FormData) */}
+          <button
+            type="button"
+            className="w-[200px] mx-auto block py-3 rounded-full text-white text-lg font-medium shadow-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: sidebarColor }}
+            disabled={captionTooLong || loading}
+            onClick={async () => {
+              const token = localStorage.getItem("token");
+              if (!token) {
+                alert("You must be logged in to post.");
+                return navigate("/login");
+              }
 
-          <div className="flex justify-between mt-2 items-center">
-            <div className="flex items-center gap-2">
-              <span
-                className={`text-sm ${
-                  captionTooLong ? "text-red-500" : nearLimit ? "text-orange-500" : "opacity-70"
-                }`}
-              >
-                {caption.length}/{MAX_CAPTION}
-              </span>
-              {captionTooLong && (
-                <span className="text-xs text-red-500 flex items-center gap-1">
-                  <FiAlertCircle /> Too long
-                </span>
-              )}
-            </div>
+              setLoading(true);
 
-            <span className="text-xs opacity-70">
-              Tip: captions and tags update preview instantly.
-            </span>
-          </div>
-        </div>
+              try {
+                // 1. Create FormData for File Upload
+                const formData = new FormData();
+                const baseContent = caption.trim() || "New post";
+                const tagLine = hashtags.length ? `\n\n${hashtags.map((t) => `#${t}`).join(" ")}` : "";
 
-        {/* TAGS */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <label className="font-semibold text-sm">TAGS</label>
-            <span className={`text-xs ${tagsFull ? "text-red-500" : "opacity-70"}`}>
-              {hashtags.length}/{MAX_TAGS}
-            </span>
-          </div>
+                formData.append("content", baseContent + tagLine);
+                formData.append("location", location.trim());
 
-          <div className="mt-2 bg-gray-100 dark:bg-neutral-700 p-3 rounded-xl">
-            <input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (!tagInput.trim()) return;
-                  handleAddTag(tagInput.trim());
-                  setTagInput("");
+                // 2. Append the actual FILE
+                // Note: This logic sends only the FIRST image for now, as our backend handles .single('image')
+                // If you want multiple images, you'd need to loop and your backend needs upload.array()
+                if (uploadedImages.length > 0 && uploadedImages[0].file) {
+                  formData.append("image", uploadedImages[0].file);
                 }
-              }}
-              placeholder={tagsFull ? "Tag limit reached" : "Add hashtags and press Enter"}
-              disabled={tagsFull}
-              className="bg-transparent outline-none w-full disabled:opacity-50"
-            />
-          </div>
 
-          <div className="flex flex-wrap gap-2 mt-3">
-            {hashtags.map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-200 rounded-full flex items-center gap-2 text-sm"
-              >
-                #{tag}
-                <FiX
-                  className="cursor-pointer"
-                  onClick={() => handleRemoveTag(tag)}
-                  title="Remove"
-                />
-              </span>
-            ))}
-          </div>
+                const response = await fetch("http://localhost:5000/api/posts", {
+                  method: "POST",
+                  headers: {
+                    // "Content-Type" MUST BE LEFT EMPTY so browser sets the boundary
+                    "Authorization": `Bearer ${token}`
+                  },
+                  body: formData,
+                });
 
-          <div className="mt-4 text-sm opacity-70">Try:</div>
-          <div className="flex gap-2 mt-1 flex-wrap">
-            {suggestedTags.map((tag) => {
-              const disabled = tagsFull || tagIsDuplicate(tag);
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => handleAddTag(tag)}
-                  disabled={disabled}
-                  className={`px-3 py-1 rounded-full text-sm transition ${
-                    disabled
-                      ? "bg-orange-100/60 text-orange-600/60 cursor-not-allowed"
-                      : "bg-orange-100 text-orange-600 hover:opacity-90"
-                  }`}
-                >
-                  #{tag}
-                </button>
-              );
-            })}
-          </div>
+                if (response.ok) {
+                  localStorage.removeItem(DRAFT_KEY);
+                  navigate("/");
+                } else {
+                  const errorData = await response.json();
+                  alert(errorData.msg || "Failed to save post to server");
+                }
+              } catch (err) {
+                console.error("Post Error:", err);
+                alert("Connection error. Is the backend running?");
+              } finally {
+                setLoading(false);
+              }
+            }}
+          >
+            {loading ? "Posting..." : "Post"}
+          </button>
         </div>
 
-        {/* ADD IMAGES */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <label className="font-semibold text-sm">ADD IMAGES</label>
-
-            <button
-              type="button"
-              onClick={() => setShowGrid((v) => !v)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition ${
-                showGrid
-                  ? "bg-black text-white dark:bg-white dark:text-black"
-                  : "bg-gray-100 dark:bg-neutral-700 hover:opacity-90"
-              }`}
-              title="Toggle grid overlay"
-            >
-              <FiGrid />
-              <span className="text-xs">Grid</span>
-            </button>
-          </div>
-
-          <div className="flex gap-4 mt-3 flex-wrap">
-            {uploadedImages.map((img, index) => (
-              <div key={img.id} className="relative">
-                <button
-                  type="button"
-                  onClick={() => setActiveIndex(index)}
-                  className={`w-24 h-24 rounded-lg overflow-hidden bg-gray-200 relative border transition ${
-                    currentIndex === index
-                      ? "ring-2 ring-blue-500 border-transparent"
-                      : "border-transparent hover:opacity-90"
-                  }`}
-                  title={img.fileName}
-                >
-                  <img src={img.src} className="w-full h-full object-cover" alt="" />
-                </button>
-
-                {/* reorder controls */}
-                <div className="absolute -top-2 -right-2 flex flex-col gap-1">
-                  <button
-                    type="button"
-                    className="w-7 h-7 rounded-full bg-white dark:bg-neutral-800 shadow flex items-center justify-center hover:opacity-90"
-                    onClick={() => moveImage(index, -1)}
-                    disabled={index === 0}
-                    title="Move up"
-                  >
-                    <FiChevronUp />
-                  </button>
-                  <button
-                    type="button"
-                    className="w-7 h-7 rounded-full bg-white dark:bg-neutral-800 shadow flex items-center justify-center hover:opacity-90"
-                    onClick={() => moveImage(index, +1)}
-                    disabled={index === uploadedImages.length - 1}
-                    title="Move down"
-                  >
-                    <FiChevronDown />
-                  </button>
-                  <button
-                    type="button"
-                    className="w-7 h-7 rounded-full bg-white dark:bg-neutral-800 shadow flex items-center justify-center hover:opacity-90"
-                    onClick={() => removeImage(index)}
-                    title="Remove"
-                  >
-                    <FiX />
-                  </button>
+        {/* RIGHT PREVIEW */}
+        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-5 text-center w-full">
+          <h2 className="text-xl font-semibold mb-1">Preview</h2>
+          <p className="text-sm opacity-70 mb-5">Preview shows how your content will look when published.</p>
+          <div className="border rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between gap-3 p-4">
+              <div className="flex items-center gap-3">
+                <img src="https://i.pravatar.cc/50?img=14" className="w-10 h-10 rounded-full" alt="profile" />
+                <div className="text-left leading-tight">
+                  <span className="font-semibold text-sm block">@Username</span>
+                  <span className="text-xs opacity-70">{audience}{location ? ` • ${location}` : ""}</span>
                 </div>
               </div>
-            ))}
-
-            <label className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-400 flex items-center justify-center cursor-pointer hover:opacity-90 transition">
-              <FiPlus size={24} />
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handleImageUpload}
-              />
-            </label>
-          </div>
-
-          {uploadedImages.length > 0 && (
-            <div className="mt-3 text-xs opacity-70 flex items-center gap-2">
-              <FiImage />
-              Carousel order is the thumbnail order. Use the arrows to reorder.
+              {uploadedImages.length > 1 && (
+                <div className="text-xs px-2 py-1 rounded-full bg-black/70 text-white">
+                  {currentIndex + 1}/{uploadedImages.length}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* EDIT IMAGE + ALT TEXT */}
-        {activeImage && (
-          <div className="mb-10 grid grid-cols-3 gap-4 bg-gray-50 dark:bg-neutral-700/60 p-4 rounded-xl">
-            <div className="col-span-3 font-semibold text-sm flex items-center justify-between">
-              <span>Edit image</span>
-              <span className="text-xs opacity-70">
-                {currentIndex + 1} of {uploadedImages.length}
-              </span>
+            <div className="relative w-full h-[350px] bg-gray-200 flex items-center justify-center overflow-hidden">
+              {showGrid && <div className="absolute inset-0 opacity-70 pointer-events-none" style={gridOverlayStyle} />}
+              {activeImage ? (
+                <img src={activeImage.src} alt={activeEdit.alt || "uploaded"} className="w-full h-full object-cover transition-transform duration-200" style={{ transform: transformFor(activeEdit) }} />
+              ) : (
+                <span className="text-gray-500 text-sm">No image uploaded</span>
+              )}
+              {uploadedImages.length > 1 && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                  {uploadedImages.map((_, i) => (
+                    <span key={i} className={`w-2 h-2 rounded-full ${i === currentIndex ? "bg-white" : "bg-white/50"}`} />
+                  ))}
+                </div>
+              )}
             </div>
-
-            <label className="text-xs col-span-3 flex flex-col gap-2">
-              <span>Zoom</span>
-              <input
-                type="range"
-                min="0.6"
-                max="2"
-                step="0.05"
-                value={activeEdit.scale}
-                onChange={(e) => updateEdit("scale", Number(e.target.value))}
-              />
-            </label>
-
-            <label className="text-xs flex flex-col gap-2">
-              <span>Slide (X)</span>
-              <input
-                type="range"
-                min="-30"
-                max="30"
-                step="1"
-                value={activeEdit.offsetX}
-                onChange={(e) => updateEdit("offsetX", Number(e.target.value))}
-              />
-            </label>
-
-            <label className="text-xs flex flex-col gap-2">
-              <span>Slide (Y)</span>
-              <input
-                type="range"
-                min="-30"
-                max="30"
-                step="1"
-                value={activeEdit.offsetY}
-                onChange={(e) => updateEdit("offsetY", Number(e.target.value))}
-              />
-            </label>
-
-            <div className="text-xs flex flex-col gap-2">
-              <span>Grid</span>
-              <button
-                type="button"
-                onClick={() => setShowGrid((v) => !v)}
-                className={`px-3 py-2 rounded-lg transition ${
-                  showGrid
-                    ? "bg-black text-white dark:bg-white dark:text-black"
-                    : "bg-gray-200 dark:bg-neutral-800 hover:opacity-90"
-                }`}
-              >
-                {showGrid ? "On" : "Off"}
-              </button>
+            <div className="p-4 text-sm text-left">
+              <p className="font-semibold">@yourusername</p>
+              <p className={captionTooLong ? "text-red-500" : ""}>{caption || "Your caption will appear here..."}</p>
+              {hashtags.length > 0 && <div className="mt-2 text-blue-500 whitespace-pre-wrap">{hashtagsText}</div>}
+              {activeImage && activeEdit.alt?.trim() && (
+                <div className="mt-3 text-xs opacity-70 flex items-center gap-2">
+                  <FiCheck /> Alt text set for this image
+                </div>
+              )}
             </div>
-
-            <label className="text-xs col-span-3 flex flex-col gap-2">
-              <span>Alt text (accessibility)</span>
-              <input
-                value={activeEdit.alt || ""}
-                onChange={(e) => updateEdit("alt", e.target.value)}
-                placeholder="Describe the image for accessibility (optional)"
-                className="px-4 py-3 rounded-lg bg-gray-100 dark:bg-neutral-800 outline-none"
-              />
-            </label>
           </div>
-        )}
-
-        {/* POST BUTTON */}
-        <button
-          type="button"
-          className="w-[200px] mx-auto block py-3 rounded-full text-white text-lg font-medium shadow-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ backgroundColor: sidebarColor }}
-          disabled={captionTooLong || loading}
-          onClick={async () => {
-            const token = localStorage.getItem("token");
-            
-            if (!token) {
-              alert("You must be logged in to post.");
-              return navigate("/login");
-            }
-
-            const baseContent = caption.trim() || "New post";
-            const tagLine = hashtags.length
-              ? `\n\n${hashtags.map((tag) => `#${tag}`).join(" ")}`
-              : "";
-            
-            setLoading(true);
-
-            try {
-              const response = await fetch("http://localhost:5000/api/posts", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  content: baseContent + tagLine,
-                  // Now sends the Base64 string instead of a blob URL
-                  image: uploadedImages.length > 0 ? uploadedImages[0].src : "", 
-                  location: location.trim()
-                }),
-              });
-
-              if (response.ok) {
-                localStorage.removeItem(DRAFT_KEY);
-                navigate("/");
-              } else {
-                const errorData = await response.json();
-                alert(errorData.msg || "Failed to save post to server");
-              }
-            } catch (err) {
-              console.error("Post Error:", err);
-              alert("Connection error. Is the backend running?");
-            } finally {
-              setLoading(false);
-            }
-          }}
-        >
-          {loading ? "Posting..." : "Post"}
-        </button>
-      </div>
-
-      {/* RIGHT PREVIEW */}
-      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-5 text-center w-full">
-        <h2 className="text-xl font-semibold mb-1">Preview</h2>
-        <p className="text-sm opacity-70 mb-5">
-          Preview shows how your content will look when published.
-        </p>
-
-        <div className="border rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between gap-3 p-4">
-            <div className="flex items-center gap-3">
-              <img
-                src="https://i.pravatar.cc/50?img=14"
-                className="w-10 h-10 rounded-full"
-                alt="profile"
-              />
-              <div className="text-left leading-tight">
-                <span className="font-semibold text-sm block">@Username</span>
-                <span className="text-xs opacity-70">
-                  {audience}
-                  {location ? ` • ${location}` : ""}
-                </span>
-              </div>
-            </div>
-
-            {uploadedImages.length > 1 && (
-              <div className="text-xs px-2 py-1 rounded-full bg-black/70 text-white">
-                {currentIndex + 1}/{uploadedImages.length}
-              </div>
-            )}
-          </div>
-
-          <div className="relative w-full h-[350px] bg-gray-200 flex items-center justify-center overflow-hidden">
-            {showGrid && (
-              <div
-                className="absolute inset-0 opacity-70 pointer-events-none"
-                style={gridOverlayStyle}
-              />
-            )}
-
-            {activeImage ? (
-              <img
-                src={activeImage.src}
-                alt={activeEdit.alt || "uploaded"}
-                className="w-full h-full object-cover transition-transform duration-200"
-                style={{ transform: transformFor(activeEdit) }}
-              />
-            ) : (
-              <span className="text-gray-500 text-sm">No image uploaded</span>
-            )}
-
-            {uploadedImages.length > 1 && (
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {uploadedImages.map((_, i) => (
-                  <span
-                    key={i}
-                    className={`w-2 h-2 rounded-full ${
-                      i === currentIndex ? "bg-white" : "bg-white/50"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="p-4 text-sm text-left">
-            <p className="font-semibold">@yourusername</p>
-            <p className={captionTooLong ? "text-red-500" : ""}>
-              {caption || "Your caption will appear here..."}
-            </p>
-
-            {hashtags.length > 0 && (
-              <div className="mt-2 text-blue-500 whitespace-pre-wrap">
-                {hashtagsText}
-              </div>
-            )}
-
-            {activeImage && activeEdit.alt?.trim() && (
-              <div className="mt-3 text-xs opacity-70 flex items-center gap-2">
-                <FiCheck /> Alt text set for this image
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-4 text-xs opacity-70 text-left">
-          Note: Images are now saved safely to the server.
+          <div className="mt-4 text-xs opacity-70 text-left">Note: Images are now saved safely to the server.</div>
         </div>
       </div>
     </div>
-  </div>
   );
 }

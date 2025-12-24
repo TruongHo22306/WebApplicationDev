@@ -1,26 +1,57 @@
 import express from 'express';
 import Post from '../models/Post.js';
-import { protect } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js'; // Check if your file is named auth.js or authMiddleware.js
+import { cloudinary, upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
 // @route   POST api/posts
-// @desc    Create a post
-// @access  Private (Needs Token)
-router.post('/', protect, async (req, res) => {
+// @desc    Create a post with Cloudinary Image Upload
+// @access  Private
+// FIX 1: Add 'upload.single' middleware to process the file
+router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
+    let imageUrl = '';
+
+    // FIX 2: Upload to Cloudinary if a file exists
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'mellow_app_posts' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+      imageUrl = result.secure_url;
+    } 
+    // Fallback: If no file, check if user sent a base64 string (optional, for backward compatibility)
+    else if (req.body.image) {
+      imageUrl = req.body.image;
+    }
+
     const newPost = new Post({
       content: req.body.content,
-      image: req.body.image,
-      user: req.user // Taken from the protect middleware
+      image: imageUrl, // Use the Cloudinary URL
+      user: req.user,
+      location: req.body.location || ''
     });
 
     const post = await newPost.save();
+    
+    // Populate user details immediately so the frontend can display the avatar
+    await post.populate('user', 'first last avatar');
+
     res.json(post);
   } catch (err) {
+    console.error(err);
     res.status(500).send('Server Error');
   }
 });
+
+// ... keep your GET and DELETE routes exactly as they are ...
 
 // @route   GET api/posts
 // @desc    Get all posts

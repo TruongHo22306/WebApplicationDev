@@ -57,24 +57,11 @@ const BACKGROUND_PRESETS = [
 ];
 
 const DRAFT_KEY = "create_story_draft_v1";
-const STORIES_KEY = "stories_feed_v1";
-
-/**
- * StoryCreation.jsx
- * Instagram style Story Creation page (9:16 canvas)
- * Features:
- * - Upload image
- * - Text tool (add/move/scale/rotate/color)
- * - Sticker emoji (add/move/scale/rotate)
- * - Draw tool (simple pen)
- * - Undo/redo (basic for draw + objects)
- * - Preview mode (hides guides and tool panels)
- * - Publish buttons: Your Story, Close Friends, Send To
- */
 
 export default function StoryCreation({ darkMode = true }) {
   const navigate = useNavigate();
   const [media, setMedia] = useState(null); // { src, name }
+  const [imageFile, setImageFile] = useState(null);
   const [mode, setMode] = useState("move"); // move | text | sticker | draw
   const [preview, setPreview] = useState(false);
 
@@ -127,7 +114,6 @@ export default function StoryCreation({ darkMode = true }) {
 
   useEffect(() => {
     drawToCanvas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [strokes, media]);
 
   useEffect(() => {
@@ -228,18 +214,32 @@ export default function StoryCreation({ darkMode = true }) {
     setPreview(false);
   };
 
-  const onUpload = (e) => {
+  /* ---------------- HELPER: Base64 Converter ---------------- */
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  /* ---------------- UPDATED: Upload Handler ---------------- */
+  const onUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const src = URL.createObjectURL(file);
-    resetCanvasState();
-    setMedia({ src, name: file.name, type: "image" });
+    // Keep Base64 ONLY for local preview
+    const base64 = await convertToBase64(file);
 
+    resetCanvasState();
+    setMedia({ src: base64, name: file.name, type: "image" });
+    setImageFile(file); // <--- Store the raw file for Cloudinary
     e.target.value = "";
   };
 
   const applyBackground = (preset) => {
+    setImageFile(null); // <--- Clear any uploaded file
     const nextMedia =
       preset.type === "gradient"
         ? { type: "gradient", gradient: preset.value, name: preset.label }
@@ -503,36 +503,65 @@ export default function StoryCreation({ darkMode = true }) {
     const onResize = () => drawToCanvas();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [strokes]);
 
-  const publish = (where) => {
-    const payload = {
-      media: media?.name || null,
-      objects,
-      strokesCount: strokes.length,
-      where,
-    };
-
-    const newStory = {
-      id: `story_${Date.now()}`,
-      cover: media?.type === "gradient" ? media.gradient : media?.src,
-      coverType: media?.type === "gradient" ? "gradient" : "image",
-      author: "You",
-      avatar: "https://i.pravatar.cc/100?img=7",
-      payload,
-    };
+  /* ---------------- UPDATED: Publish to Backend ---------------- */
+  const publish = async (where) => {
+    if (!media) return;
 
     try {
-      const raw = localStorage.getItem(STORIES_KEY);
-      const list = raw ? JSON.parse(raw) : [];
-      const next = [newStory, ...(Array.isArray(list) ? list : [])];
-      localStorage.setItem(STORIES_KEY, JSON.stringify(next));
-    } catch {
-      // ignore storage errors
-    }
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login first");
+        return navigate("/login");
+      }
 
-    navigate("/");
+      // 1. Prepare FormData
+      const formData = new FormData();
+
+      // Append Image File (only if it's an uploaded image)
+      if (imageFile && media.type === 'image') {
+        formData.append('image', imageFile);
+      }
+
+      // Append Complex Data (JSON Stringified)
+      formData.append('objects', JSON.stringify(objects));
+      formData.append('strokes', JSON.stringify(strokes));
+
+      // Append Media Metadata
+      // If it's a gradient, we send the gradient string as 'src'.
+      // If it's an image, the backend will replace 'src' with the Cloudinary URL.
+      const mediaPayload = {
+        type: media.type,
+        name: media.name || "Story",
+        
+        // FIX: Do NOT send media.src if it is an image (it's a massive Base64 string).
+        // The backend uses the uploaded file anyway.
+        src: media.type === 'gradient' ? media.gradient : '' 
+      };
+      
+      formData.append('media', JSON.stringify(mediaPayload));
+
+      // 2. Send to Backend
+      const res = await fetch("http://localhost:5000/api/stories", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+          // No Content-Type header! Browser sets it automatically.
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        localStorage.removeItem(DRAFT_KEY);
+        navigate("/");
+      } else {
+        const err = await res.json();
+        alert(err.msg || "Failed to post story");
+      }
+    } catch (err) {
+      console.error("Story publish error:", err);
+    }
   };
 
   const handleClose = () => {
@@ -685,7 +714,7 @@ export default function StoryCreation({ darkMode = true }) {
                 </div>
               )}
 
-              {/* Guide lines (rule of thirds) */}
+              {/* Guide lines */}
               {!preview && (
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="absolute left-1/3 top-0 bottom-0 w-[2px] bg-black/40" />
@@ -695,22 +724,12 @@ export default function StoryCreation({ darkMode = true }) {
                 </div>
               )}
 
-              {/* Safe area hint */}
+              {/* Safe area */}
               {!preview && (
                 <div className="absolute inset-0 pointer-events-none">
-                  <div
-                    className="absolute left-4 right-4 top-[12%] h-[2px] bg-black/40"
-                  />
-                  <div
-                    className="absolute left-4 right-4 bottom-[12%] h-[2px] bg-black/40"
-                  />
-                  <div
-                    className={`absolute top-[12%] right-4 text-[10px] ${
-                      darkMode ? "text-white/70" : "text-black/60"
-                    }`}
-                  >
-                    Safe area
-                  </div>
+                  <div className="absolute left-4 right-4 top-[12%] h-[2px] bg-black/40" />
+                  <div className="absolute left-4 right-4 bottom-[12%] h-[2px] bg-black/40" />
+                  <div className={`absolute top-[12%] right-4 text-[10px] ${darkMode ? "text-white/70" : "text-black/60"}`}>Safe area</div>
                 </div>
               )}
 
@@ -735,70 +754,18 @@ export default function StoryCreation({ darkMode = true }) {
                 />
               ))}
 
-              {/* Floating toolbar */}
+              {/* Toolbar */}
               {!preview && (
                 <div className="absolute top-3 left-3 right-3 flex justify-between pointer-events-none">
-                  <div
-                    className={`pointer-events-auto flex items-center gap-1 rounded-full px-2 py-1 border ${
-                      darkMode ? "bg-black/50 border-white/10" : "bg-white/80 border-black/10"
-                    }`}
-                  >
-                    <ToolbarButton
-                      active={mode === "move"}
-                      icon={<FiCheck />}
-                      onClick={() => setMode("move")}
-                      darkMode={darkMode}
-                      title="Move"
-                    />
-                    <ToolbarButton
-                      active={mode === "text"}
-                      icon={<FiType />}
-                      onClick={() => {
-                        setMode("text");
-                        if (!selected || selected?.type !== "text") addTextWithStyle(textPresets[0]);
-                      }}
-                      darkMode={darkMode}
-                      title="Text"
-                    />
-                    <ToolbarButton
-                      active={mode === "sticker"}
-                      icon={<FiSmile />}
-                      onClick={() => setMode("sticker")}
-                      darkMode={darkMode}
-                      title="Sticker"
-                    />
-                    <ToolbarButton
-                      active={mode === "draw"}
-                      icon={<FiEdit3 />}
-                      onClick={() => setMode("draw")}
-                      darkMode={darkMode}
-                      title="Draw"
-                    />
+                  <div className={`pointer-events-auto flex items-center gap-1 rounded-full px-2 py-1 border ${darkMode ? "bg-black/50 border-white/10" : "bg-white/80 border-black/10"}`}>
+                    <ToolbarButton active={mode === "move"} icon={<FiCheck />} onClick={() => setMode("move")} darkMode={darkMode} title="Move" />
+                    <ToolbarButton active={mode === "text"} icon={<FiType />} onClick={() => { setMode("text"); if (!selected || selected?.type !== "text") addTextWithStyle(textPresets[0]); }} darkMode={darkMode} title="Text" />
+                    <ToolbarButton active={mode === "sticker"} icon={<FiSmile />} onClick={() => setMode("sticker")} darkMode={darkMode} title="Sticker" />
+                    <ToolbarButton active={mode === "draw"} icon={<FiEdit3 />} onClick={() => setMode("draw")} darkMode={darkMode} title="Draw" />
                   </div>
-
-                  <div
-                    className={`pointer-events-auto flex items-center gap-1 rounded-full px-2 py-1 border ${
-                      darkMode ? "bg-black/50 border-white/10" : "bg-white/80 border-black/10"
-                    }`}
-                  >
-                    <ToolbarButton
-                      icon={<FiRotateCcw />}
-                      onClick={() => {
-                        if (mode === "draw") undoDraw();
-                        else undoObjects();
-                      }}
-                      darkMode={darkMode}
-                      title="Undo"
-                    />
-                    <ToolbarButton
-                      icon={<FiRotateCw />}
-                      onClick={() => {
-                        if (mode === "draw") redoDraw();
-                        else redoObjects();
-                      }}
-                      darkMode={darkMode}
-                      title="Redo"
-                    />
+                  <div className={`pointer-events-auto flex items-center gap-1 rounded-full px-2 py-1 border ${darkMode ? "bg-black/50 border-white/10" : "bg-white/80 border-black/10"}`}>
+                    <ToolbarButton icon={<FiRotateCcw />} onClick={() => { if (mode === "draw") undoDraw(); else undoObjects(); }} darkMode={darkMode} title="Undo" />
+                    <ToolbarButton icon={<FiRotateCw />} onClick={() => { if (mode === "draw") redoDraw(); else redoObjects(); }} darkMode={darkMode} title="Redo" />
                   </div>
                 </div>
               )}
@@ -815,9 +782,7 @@ export default function StoryCreation({ darkMode = true }) {
                 <div className="absolute inset-x-0 bottom-4 flex justify-center pointer-events-none">
                   <button
                     type="button"
-                    className={`pointer-events-auto px-4 py-2 rounded-full text-xs font-semibold border ${
-                      darkMode ? "bg-black/60 border-white/20 text-white" : "bg-white/80 border-black/10"
-                    }`}
+                    className={`pointer-events-auto px-4 py-2 rounded-full text-xs font-semibold border ${darkMode ? "bg-black/60 border-white/20 text-white" : "bg-white/80 border-black/10"}`}
                     onClick={() => addTextWithStyle(textPresets[0])}
                   >
                     Add text
@@ -855,16 +820,11 @@ export default function StoryCreation({ darkMode = true }) {
                   <button
                     key={preset.id}
                     type="button"
-                    className={`h-20 rounded-2xl overflow-hidden border hover:opacity-90 transition ${
-                      darkMode ? "border-white/10" : "border-black/10"
-                    }`}
+                    className={`h-20 rounded-2xl overflow-hidden border hover:opacity-90 transition ${darkMode ? "border-white/10" : "border-black/10"}`}
                     onClick={() => applyBackground(preset)}
                     title={preset.label}
                     style={{
-                      backgroundImage:
-                        preset.type === "gradient"
-                          ? preset.value
-                          : `url(${preset.value})`,
+                      backgroundImage: preset.type === "gradient" ? preset.value : `url(${preset.value})`,
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                     }}
@@ -881,41 +841,10 @@ export default function StoryCreation({ darkMode = true }) {
 
           {/* Mode buttons */}
           <div className="mt-3 grid grid-cols-4 gap-2">
-            <ToolButton
-              active={mode === "move"}
-              disabled={preview}
-              icon={<FiCheck />}
-              label="Move"
-              darkMode={darkMode}
-              onClick={() => setMode("move")}
-            />
-            <ToolButton
-              active={mode === "text"}
-              disabled={preview}
-              icon={<FiType />}
-              label="Text"
-              darkMode={darkMode}
-              onClick={() => {
-                setMode("text");
-                if (!selected || selected?.type !== "text") addText();
-              }}
-            />
-            <ToolButton
-              active={mode === "sticker"}
-              disabled={preview}
-              icon={<FiSmile />}
-              label="Sticker"
-              darkMode={darkMode}
-              onClick={() => setMode("sticker")}
-            />
-            <ToolButton
-              active={mode === "draw"}
-              disabled={preview}
-              icon={<FiEdit3 />}
-              label="Draw"
-              darkMode={darkMode}
-              onClick={() => setMode("draw")}
-            />
+            <ToolButton active={mode === "move"} disabled={preview} icon={<FiCheck />} label="Move" darkMode={darkMode} onClick={() => setMode("move")} />
+            <ToolButton active={mode === "text"} disabled={preview} icon={<FiType />} label="Text" darkMode={darkMode} onClick={() => { setMode("text"); if (!selected || selected?.type !== "text") addText(); }} />
+            <ToolButton active={mode === "sticker"} disabled={preview} icon={<FiSmile />} label="Sticker" darkMode={darkMode} onClick={() => setMode("sticker")} />
+            <ToolButton active={mode === "draw"} disabled={preview} icon={<FiEdit3 />} label="Draw" darkMode={darkMode} onClick={() => setMode("draw")} />
           </div>
 
           {/* Sticker picker */}
@@ -929,7 +858,6 @@ export default function StoryCreation({ darkMode = true }) {
                     type="button"
                     className={`w-11 h-11 rounded-2xl ${soft} transition text-xl flex items-center justify-center`}
                     onClick={() => addSticker(emo)}
-                    title={`Add ${emo}`}
                   >
                     {emo}
                   </button>
@@ -954,11 +882,8 @@ export default function StoryCreation({ darkMode = true }) {
                       key={c}
                       type="button"
                       onClick={() => setPenColor(c)}
-                      className={`w-9 h-9 rounded-full border ${
-                        penColor === c ? "border-white" : "border-white/20"
-                      }`}
+                      className={`w-9 h-9 rounded-full border ${penColor === c ? "border-white" : "border-white/20"}`}
                       style={{ background: c }}
-                      title={c}
                     />
                   ))}
                 </div>
@@ -967,26 +892,11 @@ export default function StoryCreation({ darkMode = true }) {
               <div>
                 <div className={`text-xs ${muted} mb-2`}>Size</div>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    className={`p-2 rounded-xl ${soft} transition`}
-                    onClick={() => setPenSize((v) => clamp(v - 1, 2, 18))}
-                  >
+                  <button type="button" className={`p-2 rounded-xl ${soft} transition`} onClick={() => setPenSize((v) => clamp(v - 1, 2, 18))}>
                     <FiMinus />
                   </button>
-                  <input
-                    type="range"
-                    min="2"
-                    max="18"
-                    value={penSize}
-                    onChange={(e) => setPenSize(Number(e.target.value))}
-                    className="flex-1"
-                  />
-                  <button
-                    type="button"
-                    className={`p-2 rounded-xl ${soft} transition`}
-                    onClick={() => setPenSize((v) => clamp(v + 1, 2, 18))}
-                  >
+                  <input type="range" min="2" max="18" value={penSize} onChange={(e) => setPenSize(Number(e.target.value))} className="flex-1" />
+                  <button type="button" className={`p-2 rounded-xl ${soft} transition`} onClick={() => setPenSize((v) => clamp(v + 1, 2, 18))}>
                     <FiPlus />
                   </button>
                 </div>
@@ -995,10 +905,7 @@ export default function StoryCreation({ darkMode = true }) {
               <button
                 type="button"
                 className={`w-full py-3 rounded-2xl ${soft} transition flex items-center justify-center gap-2`}
-                onClick={() => {
-                  setStrokes([]);
-                  setRedoStrokes([]);
-                }}
+                onClick={() => { setStrokes([]); setRedoStrokes([]); }}
               >
                 <FiTrash2 />
                 Clear drawings
@@ -1010,50 +917,22 @@ export default function StoryCreation({ darkMode = true }) {
           {!preview && selected && mode !== "draw" && (
             <div className="mt-4 space-y-4">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold">
-                  {selected.type === "text" ? "Text" : "Sticker"} settings
-                </div>
-                <button
-                  type="button"
-                  className={`p-2 rounded-xl ${soft} transition`}
-                  onClick={removeSelected}
-                  title="Delete selected"
-                >
+                <div className="text-sm font-semibold">{selected.type === "text" ? "Text" : "Sticker"} settings</div>
+                <button type="button" className={`p-2 rounded-xl ${soft} transition`} onClick={removeSelected} title="Delete selected">
                   <FiTrash2 />
                 </button>
               </div>
 
-              {/* Scale */}
               <div>
                 <div className={`text-xs ${muted} mb-2`}>Scale</div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="2.2"
-                  step="0.05"
-                  value={selected.scale}
-                  onChange={(e) => updateSelected({ scale: Number(e.target.value) })}
-                  onMouseUp={(e) => commitSelected({ scale: Number(e.target.value) })}
-                  className="w-full"
-                />
+                <input type="range" min="0.5" max="2.2" step="0.05" value={selected.scale} onChange={(e) => updateSelected({ scale: Number(e.target.value) })} onMouseUp={(e) => commitSelected({ scale: Number(e.target.value) })} className="w-full" />
               </div>
 
-              {/* Rotation */}
               <div>
                 <div className={`text-xs ${muted} mb-2`}>Rotation</div>
-                <input
-                  type="range"
-                  min="-25"
-                  max="25"
-                  step="1"
-                  value={selected.rotation}
-                  onChange={(e) => updateSelected({ rotation: Number(e.target.value) })}
-                  onMouseUp={(e) => commitSelected({ rotation: Number(e.target.value) })}
-                  className="w-full"
-                />
+                <input type="range" min="-25" max="25" step="1" value={selected.rotation} onChange={(e) => updateSelected({ rotation: Number(e.target.value) })} onMouseUp={(e) => commitSelected({ rotation: Number(e.target.value) })} className="w-full" />
               </div>
 
-              {/* Text specific */}
               {selected.type === "text" && (
                 <>
                   <div>
@@ -1064,12 +943,7 @@ export default function StoryCreation({ darkMode = true }) {
                           key={preset.id}
                           type="button"
                           className={`py-2 rounded-xl ${soft} transition text-xs font-semibold`}
-                          onClick={() =>
-                            commitSelected({
-                              fontSize: preset.fontSize,
-                              weight: preset.weight,
-                            })
-                          }
+                          onClick={() => commitSelected({ fontSize: preset.fontSize, weight: preset.weight })}
                         >
                           {preset.label}
                         </button>
@@ -1083,9 +957,7 @@ export default function StoryCreation({ darkMode = true }) {
                       value={selected.text}
                       onChange={(e) => updateSelected({ text: e.target.value })}
                       onBlur={(e) => commitSelected({ text: e.target.value })}
-                      className={`w-full px-4 py-3 rounded-2xl outline-none ${
-                        darkMode ? "bg-white/10" : "bg-black/5"
-                      }`}
+                      className={`w-full px-4 py-3 rounded-2xl outline-none ${darkMode ? "bg-white/10" : "bg-black/5"}`}
                       placeholder="Type..."
                     />
                   </div>
@@ -1098,11 +970,8 @@ export default function StoryCreation({ darkMode = true }) {
                           key={c}
                           type="button"
                           onClick={() => commitSelected({ color: c })}
-                          className={`w-9 h-9 rounded-full border ${
-                            selected.color === c ? "border-white" : "border-white/20"
-                          }`}
+                          className={`w-9 h-9 rounded-full border ${selected.color === c ? "border-white" : "border-white/20"}`}
                           style={{ background: c }}
-                          title={c}
                         />
                       ))}
                     </div>
@@ -1110,16 +979,7 @@ export default function StoryCreation({ darkMode = true }) {
 
                   <div>
                     <div className={`text-xs ${muted} mb-2`}>Font size</div>
-                    <input
-                      type="range"
-                      min="18"
-                      max="64"
-                      step="1"
-                      value={selected.fontSize}
-                      onChange={(e) => updateSelected({ fontSize: Number(e.target.value) })}
-                      onMouseUp={(e) => commitSelected({ fontSize: Number(e.target.value) })}
-                      className="w-full"
-                    />
+                    <input type="range" min="18" max="64" step="1" value={selected.fontSize} onChange={(e) => updateSelected({ fontSize: Number(e.target.value) })} onMouseUp={(e) => commitSelected({ fontSize: Number(e.target.value) })} className="w-full" />
                   </div>
                 </>
               )}
@@ -1130,9 +990,7 @@ export default function StoryCreation({ darkMode = true }) {
           {!preview && !selected && mode !== "draw" && (
             <div className="mt-4">
               <div className={`text-sm font-semibold`}>Quick actions</div>
-              <div className={`text-xs ${muted} mt-1`}>
-                Add text or stickers, then drag to position.
-              </div>
+              <div className={`text-xs ${muted} mt-1`}>Add text or stickers, then drag to position.</div>
 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
@@ -1154,7 +1012,6 @@ export default function StoryCreation({ darkMode = true }) {
                   Add sticker
                 </button>
               </div>
-
             </div>
           )}
 
@@ -1307,9 +1164,3 @@ function StageObject({
     </div>
   );
 }
-
-
-
-
-
-
