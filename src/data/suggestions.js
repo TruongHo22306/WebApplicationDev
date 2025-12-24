@@ -1,8 +1,24 @@
+import actor1 from "../assets/actor1.png";
+import actor2 from "../assets/actor2.png";
+import actor3 from "../assets/actor3.jpg";
+import actor4 from "../assets/actor4.jpg";
+import actor5 from "../assets/actor5.jpg";
+import bgSU3 from "../assets/bgSU3.png";
+import barcaWallpaper from "../assets/wp15305517-barca-2025-wallpapers.jpg";
+import xedua1 from "../assets/xedua1.jpg";
+import xedua2 from "../assets/xedua2.jpg";
+import xedua3 from "../assets/xedua3.jpg";
+import bs1 from "../assets/bs1.jpg";
+import bs2 from "../assets/bs2.jpg";
+import bs3 from "../assets/bs3.jpg";
+import bs4 from "../assets/bs4.jpg";
+import bs5 from "../assets/bs5.jpg";
+
 export const suggestions = [
   {
     name: "Brancaccio David",
     location: "California",
-    avatar: "src/assets/actor1.png",
+    avatar: actor1,
     stats: { posts: 3, followers: 210, following: 197 },
     posts: [
       {
@@ -41,8 +57,7 @@ export const suggestions = [
         privacy: "Followers",
         pinned: false,
         attachments: {
-          imageUrl: 
-            "src/assets/wp15305517-barca-2025-wallpapers.jpg",
+          imageUrl: barcaWallpaper,
           imageName: "",
           fileName: "",
           location: "Ele Volke",
@@ -54,7 +69,7 @@ export const suggestions = [
   {
     name: "Chris Hamilton",
     location: "Sibiu, Romania",
-    avatar: "src/assets/actor2.png",
+    avatar: actor2,
     stats: { posts: 12, followers: 12_300, following: 480 },
     posts: [
       {
@@ -79,8 +94,7 @@ export const suggestions = [
         privacy: "Friends",
         pinned: false,
         attachments: {
-          imageUrl:
-            "src/assets/bgSU3.png",
+          imageUrl: bgSU3,
           imageName: "palette.jpg",
           fileName: "",
           location: "",
@@ -92,7 +106,7 @@ export const suggestions = [
   {
     name: "Ho Ngoc Ha",
     location: "Ho Chi Minh City, Vietnam",
-    avatar: "src/assets/actor3.jpg",
+    avatar: actor3,
     stats: { posts: 45, followers: 8900, following: 340 },
     posts: [
       {
@@ -102,8 +116,7 @@ export const suggestions = [
         privacy: "Public",
         pinned: true,
         attachments: {
-          imageUrl:
-            "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+          imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
           imageName: "travel-flow.jpg",
           fileName: "",
           location: "Kyiv",
@@ -162,7 +175,7 @@ export const suggestions = [
         pinned: false,
         attachments: {
           imageUrl:
-            "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+            "src/assets/bgSU2.png",
           imageName: "event-recap.jpg",
           fileName: "",
           location: "",
@@ -174,7 +187,7 @@ export const suggestions = [
   {
     name: "Louis Hamilton",
     location: "Bremen, Germany",
-    avatar: "src/assets/actor4.jpg",
+    avatar: actor4,
     stats: { posts: 103, followers: 21_000, following: 540 },
     posts: [
       {
@@ -184,8 +197,7 @@ export const suggestions = [
         privacy: "Public",
         pinned: true,
         attachments: {
-          imageUrl:
-            "src/assets/xedua1.jpg",
+          imageUrl: xedua1,
           imageName: "portrait-series.jpg",
           fileName: "",
           location: "Bremen",
@@ -199,7 +211,7 @@ export const suggestions = [
         privacy: "Friends",
         pinned: false,
         attachments: {
-          imageUrl: "src/assets/xedua2.jpg",
+          imageUrl: xedua2,
           imageName: "",
           fileName: "studio-checklist.docx",
           location: "",
@@ -243,8 +255,7 @@ export const suggestions = [
         privacy: "Followers",
         pinned: false,
         attachments: {
-          imageUrl:
-            "src/assets/xedua3.jpg",
+          imageUrl: xedua3,
           imageName: "night-run.jpg",
           fileName: "",
           location: "Street Circuit",
@@ -256,7 +267,7 @@ export const suggestions = [
   {
     name: "Mr.Reptile",
     location: "Houston, Texas",
-    avatar: "src/assets/actor5.jpg",
+    avatar: actor5,
     stats: { posts: 64, followers: 15_800, following: 610 },
     posts: [
       {
@@ -266,8 +277,7 @@ export const suggestions = [
         privacy: "Public",
         pinned: true,
         attachments: {
-          imageUrl:
-            "src/assets/bs1.jpg",
+          imageUrl: bs1,
           imageName: "scrim-recap.jpg",
           fileName: "",
           location: "Elk Grove",
@@ -281,8 +291,7 @@ export const suggestions = [
         privacy: "Public",
         pinned: false,
         attachments: {
-          imageUrl:
-            "src/assets/bs2.jpg",
+          imageUrl: bs2,
           imageName: "highlight.jpg",
           fileName: "",
           location: "",
@@ -296,8 +305,7 @@ export const suggestions = [
         privacy: "Public",
         pinned: false,
         attachments: {
-          imageUrl:
-            "src/assets/bs3.jpg",
+          imageUrl: bs3,
           imageName: "arena-setup.jpg",
           fileName: "",
           location: "Houston",
@@ -311,7 +319,7 @@ export const suggestions = [
         privacy: "Followers",
         pinned: false,
         attachments: {
-          imageUrl: "src/assets/bs4.jpg",
+          imageUrl: bs4,
           imageName: "",
           fileName: "loadout-notes.txt",
           location: "",
@@ -325,8 +333,7 @@ export const suggestions = [
         privacy: "Public",
         pinned: false,
         attachments: {
-          imageUrl:
-            "src/assets/bs5.jpg",
+          imageUrl: bs5,
           imageName: "scrim-clip.jpg",
           fileName: "",
           location: "",
