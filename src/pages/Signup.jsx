@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import bgSU from "../assets/bgSU3.png";
 
-export default function Signup() {
+export default function Signup() { //createSUform
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -25,7 +25,7 @@ export default function Signup() {
     
     // Email validation
     if (!form.email.trim()) e.email = "Email required";
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Invalid email";
+    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Invalid email"; //thõa yêu cầu của Email
 
     // Simplified Password Validation (matching Login.jsx exactly)
     const isPasswordComplex = /[A-Z]/.test(form.password) && 

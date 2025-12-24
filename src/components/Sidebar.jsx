@@ -46,6 +46,7 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
   const [refreshing, setRefreshing] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const [notifications, setNotifications] = useState(notificationFeed);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -73,6 +74,10 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
   };
 
   const handleCloseNotifications = () => setShowNotifications(false);
+  const handleNotificationAction = (action, index) => {
+    if (!action) return;
+    setNotifications((prev) => prev.filter((_, i) => i !== index));
+  };
 
   return (
     <>
@@ -235,7 +240,8 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
       <NotificationsPanel
         open={showNotifications}
         onClose={handleCloseNotifications}
-        notifications={notificationFeed}
+        notifications={notifications}
+        onAction={handleNotificationAction}
       />
     </>
   );

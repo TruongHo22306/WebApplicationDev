@@ -45,6 +45,36 @@ const INITIAL_CHATS = [
     group: true,
     avatar: "https://i.pravatar.cc/80?img=8",
   },
+  {
+    id: 4,
+    name: "Liam Carter",
+    status: "Online",
+    time: "11:05 AM",
+    unread: 0,
+    pinned: false,
+    group: false,
+    avatar: "https://i.pravatar.cc/80?img=13",
+  },
+  {
+    id: 5,
+    name: "Marketing Squad",
+    status: "New brief shared",
+    time: "9:42 AM",
+    unread: 3,
+    pinned: false,
+    group: true,
+    avatar: "https://i.pravatar.cc/80?img=15",
+  },
+  {
+    id: 6,
+    name: "Priya Desai",
+    status: "Last seen 2h ago",
+    time: "Yesterday",
+    unread: 0,
+    pinned: false,
+    group: false,
+    avatar: "https://i.pravatar.cc/80?img=47",
+  },
 ];
 
 const INITIAL_THREADS = {
@@ -61,15 +91,102 @@ const INITIAL_THREADS = {
       text: "Looks great, I want to book a viewing.",
       time: "12:25 PM",
     },
+    {
+      id: "m3",
+      from: "them",
+      text: "We can do Thursday afternoon if that works.",
+      time: "2:10 PM",
+    },
+    {
+      id: "m4",
+      from: "me",
+      text: "Thursday at 3 PM works. Please send the address.",
+      time: "2:18 PM",
+      replyToId: "m3",
+    },
   ],
-  2: [{ id: "m1", from: "them", text: "Still interested", time: "5:30 PM" }],
-  3: [],
+  2: [
+    { id: "m1", from: "them", text: "Still interested?", time: "5:30 PM" },
+    { id: "m2", from: "me", text: "Yes, just finishing a meeting.", time: "5:41 PM" },
+    { id: "m3", from: "them", text: "No rush. Want to review the details later?", time: "5:44 PM" },
+  ],
+  3: [
+    {
+      id: "m1",
+      from: "them",
+      text: "New moodboards are in the drive.",
+      time: "9:10 AM",
+    },
+    {
+      id: "m2",
+      from: "me",
+      text: "Got them. I will send feedback by noon.",
+      time: "9:14 AM",
+    },
+  ],
+  4: [
+    {
+      id: "m1",
+      from: "them",
+      text: "Are we still on for the client call?",
+      time: "8:02 AM",
+    },
+    {
+      id: "m2",
+      from: "me",
+      text: "Yes, I will join in 10 minutes.",
+      time: "8:05 AM",
+    },
+    {
+      id: "m3",
+      from: "them",
+      text: "Perfect. I will share the notes after.",
+      time: "8:06 AM",
+    },
+  ],
+  5: [
+    {
+      id: "m1",
+      from: "them",
+      text: "Campaign brief is ready. Please review.",
+      time: "9:20 AM",
+    },
+    {
+      id: "m2",
+      from: "me",
+      text: "Reading now. I will drop comments in 30 minutes.",
+      time: "9:26 AM",
+    },
+    {
+      id: "m3",
+      from: "them",
+      text: "Thanks. We need final by EOD.",
+      time: "9:32 AM",
+    },
+  ],
+  6: [
+    {
+      id: "m1",
+      from: "them",
+      text: "Flight changed to 6:45 PM.",
+      time: "Yesterday",
+    },
+    {
+      id: "m2",
+      from: "me",
+      text: "Got it. I will pick you up at 7:20.",
+      time: "Yesterday",
+    },
+  ],
 };
 
 const NEW_MESSAGE_USERS = [
   { id: "u1", name: "Alexander Jameson", avatar: "https://i.pravatar.cc/80?img=31" },
   { id: "u2", name: "Sarah Connors", avatar: "https://i.pravatar.cc/80?img=5" },
   { id: "u3", name: "Design Team", avatar: "https://i.pravatar.cc/80?img=8" },
+  { id: "u4", name: "Liam Carter", avatar: "https://i.pravatar.cc/80?img=13" },
+  { id: "u5", name: "Marketing Squad", avatar: "https://i.pravatar.cc/80?img=15" },
+  { id: "u6", name: "Priya Desai", avatar: "https://i.pravatar.cc/80?img=47" },
 ];
 
 export default function Messages({ darkMode = false }) {
@@ -322,7 +439,7 @@ export default function Messages({ darkMode = false }) {
                 </button>
                 {showEmojiPicker && (
                   <div className="absolute right-0 bottom-full mb-2 flex gap-1 bg-white shadow-lg border border-[#d6c9bb] rounded-xl px-2 py-1 dark:bg-[#2B2722] dark:border-[#3a332c]">
-                    {["<3", ":)", ":D", ";)", ":P", "XD"].map((emoji) => (
+                    {["😄", "😅", "😍", "😂", "🥳", "👍", "👏", "💗", "🔥", "🎉", "🤝", "😊"].map((emoji) => (
                       <button
                         key={emoji}
                         onClick={() => appendEmoji(emoji)}
@@ -444,7 +561,7 @@ function IconButton({ icon, onClick }) {
 
 function MessageBubble({ message, repliedTo, onReact, onReply }) {
   const isMe = message.from === "me";
-  const reactions = ["<3", ":)", ":D"];
+  const reactions = ["❤️", "😀", "😂"];
 
   return (
     <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>

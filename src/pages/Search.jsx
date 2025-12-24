@@ -30,6 +30,12 @@ const mediaResults = [
   { id: 2, src: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&w=900&q=80", likes: "2.1k", comments: 64, height: 340, title: "Coffee Time", author: "Sarah Johnson", avatar: "https://i.pravatar.cc/60?img=31" },
   { id: 3, src: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80", likes: "5.9k", comments: 241, height: 240, title: "Sunset", author: "Jordan Lee", avatar: "https://i.pravatar.cc/60?img=23" },
   { id: 4, src: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80", likes: "3.7k", comments: 129, height: 320, title: "Forest Path", author: "Casey Williams", avatar: "https://i.pravatar.cc/60?img=11" },
+  { id: 5, src: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80", likes: "6.4k", comments: 301, height: 260, title: "Desert Run", author: "Liam Carter", avatar: "https://i.pravatar.cc/60?img=13" },
+  { id: 6, src: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80", likes: "2.9k", comments: 98, height: 300, title: "Mossy Ridge", author: "Priya Desai", avatar: "https://i.pravatar.cc/60?img=47" },
+  { id: 7, src: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&w=900&q=80", likes: "4.8k", comments: 154, height: 280, title: "Desk Calm", author: "Sarah Johnson", avatar: "https://i.pravatar.cc/60?img=31" },
+  { id: 8, src: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=900&q=80", likes: "3.3k", comments: 112, height: 240, title: "Soft Peaks", author: "Alex Morgan", avatar: "https://i.pravatar.cc/60?img=14" },
+  { id: 9, src: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80", likes: "7.2k", comments: 402, height: 320, title: "Canyon Drive", author: "Jordan Lee", avatar: "https://i.pravatar.cc/60?img=23" },
+  { id: 10, src: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80", likes: "4.1k", comments: 188, height: 300, title: "Golden Valley", author: "Casey Williams", avatar: "https://i.pravatar.cc/60?img=11" },
 ];
 
 const mockComments = [
@@ -225,38 +231,11 @@ export default function Search() {
                   <div className="flex items-center justify-between">
                     <h2 className="font-bold text-lg text-[#2f2a25]">Trending</h2>
                   </div>
-                  <motion.div className="grid grid-cols-2 md:grid-cols-4 gap-4" variants={staggerContainer}>
-                    {filteredMedia.slice(0, 4).map((media) => (
+                  <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" variants={staggerContainer}>
+                    {filteredMedia.slice(0, 8).map((media) => (
                       <motion.button
                         key={media.id}
-                        className="group relative rounded-2xl overflow-hidden aspect-square shadow-md"
-                        onClick={() => openMedia(media, true)}
-                        variants={fadeItem}
-                      >
-                        <img
-                          src={media.src}
-                          alt={media.title}
-                          className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                        <div className="absolute inset-0 flex items-end p-3">
-                          <p className="text-sm font-semibold text-white drop-shadow">{media.title}</p>
-                        </div>
-                      </motion.button>
-                    ))}
-                  </motion.div>
-                </motion.section>
-
-                {/* Explore */}
-                <motion.section className="space-y-3" variants={staggerContainer} initial="initial" animate="animate">
-                  <div className="flex items-center justify-between">
-                    <h2 className="font-bold text-lg text-[#2f2a25]">Explore</h2>
-                  </div>
-                  <motion.div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4" variants={staggerContainer}>
-                    {filteredMedia.map((media) => (
-                      <motion.button
-                        key={media.id}
-                        className="group relative rounded-2xl overflow-hidden h-32 shadow"
+                        className="group relative rounded-2xl overflow-hidden aspect-[5/4] shadow-md"
                         onClick={() => openMedia(media, true)}
                         variants={fadeItem}
                       >

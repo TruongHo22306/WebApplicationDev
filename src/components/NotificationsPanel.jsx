@@ -1,6 +1,6 @@
 import { FiBell, FiX } from "react-icons/fi";
 
-export default function NotificationsPanel({ open, onClose, notifications }) {
+export default function NotificationsPanel({ open, onClose, notifications, onAction }) {
   return (
     <div
       className={`fixed inset-0 z-50 transition-opacity duration-300 ${
@@ -62,6 +62,8 @@ export default function NotificationsPanel({ open, onClose, notifications }) {
                     {n.actions.map((action) => (
                       <button
                         key={action}
+                        type="button"
+                        onClick={() => onAction?.(action, idx)}
                         className="px-3 py-1 rounded-full bg-white text-neutral-900 text-xs font-semibold hover:opacity-90 transition"
                       >
                         {action}
