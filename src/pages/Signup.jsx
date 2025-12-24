@@ -22,12 +22,24 @@ export default function Signup() {
 
   const validate = () => {
     let e = {};
+    
+    // Email validation
     if (!form.email.trim()) e.email = "Email required";
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Invalid email";
 
-    if (!form.password) e.password = "Password required";
-    else if (form.password.length < 6)
+    // Simplified Password Validation (matching Login.jsx exactly)
+    const isPasswordComplex = /[A-Z]/.test(form.password) && 
+                              /[a-z]/.test(form.password) && 
+                              /\d/.test(form.password) && 
+                              /[^A-Za-z0-9]/.test(form.password);
+
+    if (!form.password) {
+      e.password = "Password required";
+    } else if (form.password.length < 6) {
       e.password = "At least 6 characters";
+    } else if (!isPasswordComplex) {
+      e.password = "Needs uppercase, lowercase, number, and special character";
+    }
 
     if (form.confirm !== form.password)
       e.confirm = "Passwords do not match";
@@ -36,23 +48,47 @@ export default function Signup() {
     return Object.keys(e).length === 0;
   };
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setLoading(true);
-    setTimeout(() => {
-      try {
-        localStorage.setItem(
-          "signup_credentials",
-          JSON.stringify({ email: form.email.trim(), password: form.password })
-        );
-      } catch {
-        // ignore storage errors
+    setErrors({}); // Reset any previous errors
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first: form.first,
+          last: form.last,
+          email: form.email.trim(),
+          password: form.password,
+          phone: form.phone
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Success: Store the JWT token returned by the backend
+        localStorage.setItem("token", data.token);
+        setSuccessMessage("Sign up successful! Redirecting to login...");
+        
+        // Wait briefly so the user can see the success message
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
+      } else {
+        // Server-side error (e.g., email already in use)
+        setErrors({ server: data.msg || "Registration failed" });
       }
-      setSuccessMessage("Sign up successful! Redirecting to login...");
-      navigate("/login");
-    }, 800);
+    } catch (err) {
+      console.error("Connection error:", err);
+      setErrors({ server: "Cannot connect to server. Ensure backend is running on port 5000." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
