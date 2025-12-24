@@ -190,3 +190,154 @@ body {
   background: rgba(255, 255, 255, 0.75);  /* Không blur, chỉ mờ nhẹ */
   backdrop-filter: none; /* Tắt blur */
 }
+
+/* Ripple effect */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  transform: scale(0);
+  animation: rippleAnim 0.4s linear;
+}
+
+@keyframes rippleAnim {
+  to {
+    transform: scale(8);
+    opacity: 0;
+  }
+}
+
+/* PAGE TRANSITION */
+.page-slide-enter {
+  animation: pageSlideIn 0.35s ease forwards;
+}
+
+.page-slide-exit {
+  animation: pageSlideOut 0.35s ease forwards;
+}
+
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pageSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0);
+  animation: ripple-effect 0.6s linear;
+  pointer-events: none;
+}
+
+@keyframes ripple-effect {
+  to {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  transform: scale(0);
+  animation: ripple-effect 0.6s linear;
+  pointer-events: none;
+}
+
+@keyframes ripple-effect {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Big heart pop khi double-tap */
+.reel-heart-pop {
+  animation: reel-heart-pop 0.6s ease-out forwards;
+}
+
+@keyframes reel-heart-pop {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Ẩn scrollbar trong container reels (cho đẹp hơn) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes slideLeftPopup {
+  0% {
+    transform: translateX(-40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideLeftPopup {
+  animation: slideLeftPopup 0.35s ease-out forwards;
+}
+@keyframes slideRightPopup {
+  0% {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bigHeart {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(0.3); opacity: 0; }
+}
+
+.animate-bigHeart {
+  animation: bigHeart 0.7s ease forwards;
+}
+
