@@ -2,40 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiMessageSquare, FiLock, FiMessageCircle } from "react-icons/fi";
 import MessagesPanel from "./MessagesPanel";
-
-// TODO: Replace with backend-provided suggestions list.
-const suggestions = [
-  {
-    name: "Webuistylist",
-    location: "Elk Grove, California",
-    avatar: "https://i.pravatar.cc/60?img=68",
-    stats: { posts: 0, followers: 210, following: 197 },
-  },
-  {
-    name: "Anghelina",
-    location: "Sibiu, Romania",
-    avatar: "https://i.pravatar.cc/60?img=32",
-    stats: { posts: 12, followers: 12_300, following: 480 },
-  },
-  {
-    name: "Mais Designer",
-    location: "Ukraine",
-    avatar: "https://i.pravatar.cc/60?img=16",
-    stats: { posts: 45, followers: 8900, following: 340 },
-  },
-  {
-    name: "Vera Cherry",
-    location: "Bremen, Germany",
-    avatar: "https://i.pravatar.cc/60?img=47",
-    stats: { posts: 103, followers: 21_000, following: 540 },
-  },
-  {
-    name: "Josh e-Sport",
-    location: "Elk Grove, California",
-    avatar: "https://i.pravatar.cc/60?img=5",
-    stats: { posts: 64, followers: 15_800, following: 610 },
-  },
-];
+import { suggestions } from "../data/suggestions";
 
 const recentChats = [
   {
@@ -197,16 +164,6 @@ export default function RightProfileCard() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 mb-3">
-                    <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center bg-white/5">
-                      <FiLock className="text-white/80" size={18} />
-                    </div>
-                    <p className="font-semibold text-[13px]">Private account</p>
-                    <p className="text-[12px] text-center text-white/70 px-2">
-                      Follow to see their photos and videos.
-                    </p>
-                  </div>
-
                   <button className="w-full py-2 rounded-full bg-[#6b5c51] text-white font-semibold text-[14px] hover:-translate-y-0.5 transition transform shadow-[0_10px_22px_rgba(0,0,0,0.18)] hover:shadow-[0_14px_26px_rgba(0,0,0,0.2)]">
                     Follow
                   </button>
@@ -253,9 +210,6 @@ export default function RightProfileCard() {
               </div>
             ))}
           </div>
-          <button className="w-full px-4 py-3 text-sm font-semibold text-[#6B5C51] dark:text-[#B89B6C] hover:bg-neutral-100 dark:hover:bg-[#23201B] transition rounded-b-2xl">
-            View all schedule
-          </button>
         </div>
       </div>
 

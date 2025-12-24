@@ -1,8 +1,18 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FiCamera, FiMail, FiUser, FiGlobe, FiCalendar } from "react-icons/fi";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("account");
+  const [avatarSrc, setAvatarSrc] = useState("https://i.pravatar.cc/150?img=35");
+  const avatarInputRef = useRef(null);
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const nextUrl = URL.createObjectURL(file);
+    setAvatarSrc(nextUrl);
+    e.target.value = "";
+  };
 
   return (
     <div className="flex w-full min-h-screen bg-inherit text-inherit px-20 py-12">
@@ -40,12 +50,23 @@ export default function Settings() {
             {/* AVATAR + UPLOAD */}
             <div className="flex items-center gap-6 mb-8">
               <img
-                src="https://i.pravatar.cc/150?img=35"
+                src={avatarSrc}
                 className="w-20 h-20 rounded-full object-cover"
               />
-              <button className="bg-[#6b5c51] hover:bg-[#5f5248] text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="bg-[#6b5c51] hover:bg-[#5f5248] text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+              >
                 <FiCamera /> Upload Photo
               </button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
             </div>
 
             {/* FORM */}

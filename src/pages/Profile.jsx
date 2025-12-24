@@ -74,6 +74,39 @@ const INITIAL_POSTS = [
   },
 ];
 
+const buildDefaultPosts = () => {
+  try {
+    const raw = localStorage.getItem(POSTS_KEY);
+    const stored = raw ? JSON.parse(raw) : [];
+    const storedPosts = Array.isArray(stored)
+      ? stored.map((p) => ({
+          ...p,
+          origin: "local",
+          pinned: Boolean(p.pinned),
+        }))
+      : [];
+    return [...storedPosts, ...INITIAL_POSTS];
+  } catch {
+    return [...INITIAL_POSTS];
+  }
+};
+
+const buildSuggestionPosts = (suggestion) => {
+  const rawPosts = Array.isArray(suggestion?.posts) ? suggestion.posts : [];
+  return rawPosts.map((post, index) => ({
+    id: post.id ?? `suggestion-post-${index}`,
+    author: post.author ?? suggestion?.name ?? "User",
+    avatar: post.avatar ?? suggestion?.avatar ?? avatarUrl,
+    content: post.content ?? "",
+    createdAt: post.createdAt ?? "Recently",
+    privacy: post.privacy ?? "Public",
+    pinned: Boolean(post.pinned),
+    origin: "suggestion",
+    attachments: post.attachments ?? {},
+    stats: post.stats ?? { likes: 0, comments: 0, shares: 0, reposts: 0 },
+  }));
+};
+
 const DEFAULT_PROFILE = {
   name: "Mathew Anderson",
   username: "mathew",
@@ -133,22 +166,7 @@ export default function Profile({ darkMode = false }) {
     },
   ];
 
-  const [posts, setPosts] = useState(() => {
-    try {
-      const raw = localStorage.getItem(POSTS_KEY);
-      const stored = raw ? JSON.parse(raw) : [];
-      const storedPosts = Array.isArray(stored)
-        ? stored.map((p) => ({
-            ...p,
-            origin: "local",
-            pinned: Boolean(p.pinned),
-          }))
-        : [];
-      return [...storedPosts, ...INITIAL_POSTS];
-    } catch {
-      return [...INITIAL_POSTS];
-    }
-  });
+  const [posts, setPosts] = useState(() => buildDefaultPosts());
 
   const [activeTab, setActiveTab] = useState("Posts");
   const [activeStat, setActiveStat] = useState(null);
@@ -279,6 +297,7 @@ export default function Profile({ darkMode = false }) {
       setDraftProfile(DEFAULT_PROFILE);
       setAvatarSrc(avatarUrl);
       setProfileStats({ posts: 938, followers: 3586, following: 2659 });
+      setPosts(buildDefaultPosts());
       setIsFollowing(false);
       return;
     }
@@ -302,6 +321,7 @@ export default function Profile({ darkMode = false }) {
       followers: suggestion.stats?.followers ?? 0,
       following: suggestion.stats?.following ?? 0,
     });
+    setPosts(buildSuggestionPosts(suggestion));
     setIsFollowing(false);
   }, [location.state]);
 
@@ -343,22 +363,24 @@ export default function Profile({ darkMode = false }) {
               )}
             </div>
 
-            <div className="absolute top-3 right-3 flex items-center gap-2">
-              <label className="px-3 py-1.5 rounded-full bg-white/90 text-xs font-medium flex items-center gap-2 cursor-pointer shadow dark:bg-[#2B2722]/90 dark:text-[#EDE5DA]">
-                <FiCamera />
-                <span className="hidden sm:inline">Change cover</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
-              </label>
-              <button
-                type="button"
-                className={`px-3 py-1.5 rounded-full text-xs font-medium shadow ${
-                  isRepositioning ? "bg-black text-white" : "bg-white/90 dark:bg-[#2B2722]/90 dark:text-[#EDE5DA]"
-                }`}
-                onClick={() => setIsRepositioning((v) => !v)}
-              >
-                {isRepositioning ? "Done" : "Reposition"}
-              </button>
-            </div>
+            {!isViewingSuggestion && (
+              <div className="absolute top-3 right-3 flex items-center gap-2">
+                <label className="px-3 py-1.5 rounded-full bg-white/90 text-xs font-medium flex items-center gap-2 cursor-pointer shadow dark:bg-[#2B2722]/90 dark:text-[#EDE5DA]">
+                  <FiCamera />
+                  <span className="hidden sm:inline">Change cover</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                </label>
+                <button
+                  type="button"
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium shadow ${
+                    isRepositioning ? "bg-black text-white" : "bg-white/90 dark:bg-[#2B2722]/90 dark:text-[#EDE5DA]"
+                  }`}
+                  onClick={() => setIsRepositioning((v) => !v)}
+                >
+                  {isRepositioning ? "Done" : "Reposition"}
+                </button>
+              </div>
+            )}
 
             <div className="absolute left-1/2 -bottom-10 -translate-x-1/2">
               <div className="relative">
@@ -543,10 +565,20 @@ export default function Profile({ darkMode = false }) {
                 Post
               </div>
               {pinnedPosts.map((post) => (
-                <PostCard key={post.id} post={post} onTogglePin={togglePin} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onTogglePin={togglePin}
+                  canPin={!isViewingSuggestion}
+                />
               ))}
               {regularPosts.map((post) => (
-                <PostCard key={post.id} post={post} onTogglePin={togglePin} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onTogglePin={togglePin}
+                  canPin={!isViewingSuggestion}
+                />
               ))}
             </div>
           )}
@@ -623,19 +655,21 @@ function TabButton({ active, onClick, children }) {
   );
 }
 
-function PostCard({ post, onTogglePin }) {
+function PostCard({ post, onTogglePin, canPin = true }) {
   return (
     <div className="rounded-2xl">
-      <div className="flex items-center justify-end px-3 pt-3 pb-1">
-        <button
-          type="button"
-          className="text-xs text-neutral-500 hover:text-neutral-900 transition flex items-center gap-1 dark:text-[#B89B6C] dark:hover:text-[#EDE5DA]"
-          onClick={() => onTogglePin(post.id)}
-        >
-          <FiPaperclip size={12} />
-          {post.pinned ? "Unpin" : "Pin"}
-        </button>
-      </div>
+      {canPin && (
+        <div className="flex items-center justify-end px-3 pt-3 pb-1">
+          <button
+            type="button"
+            className="text-xs text-neutral-500 hover:text-neutral-900 transition flex items-center gap-1 dark:text-[#B89B6C] dark:hover:text-[#EDE5DA]"
+            onClick={() => onTogglePin(post.id)}
+          >
+            <FiPaperclip size={12} />
+            {post.pinned ? "Unpin" : "Pin"}
+          </button>
+        </div>
+      )}
       <FeedPost
         author={post.author}
         avatar={post.avatar}

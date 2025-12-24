@@ -62,7 +62,7 @@ const INITIAL_THREADS = {
       time: "12:25 PM",
     },
   ],
-  2: [{ id: "m1", from: "them", text: "Still interested?", time: "5:30 PM" }],
+  2: [{ id: "m1", from: "them", text: "Still interested", time: "5:30 PM" }],
   3: [],
 };
 
@@ -146,9 +146,7 @@ export default function Messages({ darkMode = false }) {
     setThreads((prev) => {
       const list = prev[chatId] || [];
       const updated = list.map((m) =>
-        m.id === messageId
-          ? { ...m, reaction: m.reaction === emoji ? undefined : emoji }
-          : m
+        m.id === messageId ? { ...m, reaction: m.reaction === emoji ? undefined : emoji } : m
       );
       return { ...prev, [chatId]: updated };
     });
@@ -260,9 +258,7 @@ export default function Messages({ darkMode = false }) {
 
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
           {activeMessages.map((msg) => {
-            const repliedTo = msg.replyToId
-              ? activeMessages.find((m) => m.id === msg.replyToId)
-              : null;
+            const repliedTo = msg.replyToId ? activeMessages.find((m) => m.id === msg.replyToId) : null;
             return (
               <MessageBubble
                 key={msg.id}
@@ -286,8 +282,8 @@ export default function Messages({ darkMode = false }) {
                 </span>
                 {replyTo.text && (
                   <span className="ml-1 text-[#7b6d63] dark:text-[#B89B6C]/80">
-                    “{replyTo.text.slice(0, 60)}
-                    {replyTo.text.length > 60 ? "…" : ""}”
+                    "{replyTo.text.slice(0, 60)}
+                    {replyTo.text.length > 60 ? "..." : ""}"
                   </span>
                 )}
               </div>
@@ -326,7 +322,7 @@ export default function Messages({ darkMode = false }) {
                 </button>
                 {showEmojiPicker && (
                   <div className="absolute right-0 bottom-full mb-2 flex gap-1 bg-white shadow-lg border border-[#d6c9bb] rounded-xl px-2 py-1 dark:bg-[#2B2722] dark:border-[#3a332c]">
-                    {["😊", "😂", "❤️", "👍", "🔥", "👏"].map((emoji) => (
+                    {["<3", ":)", ":D", ";)", ":P", "XD"].map((emoji) => (
                       <button
                         key={emoji}
                         onClick={() => appendEmoji(emoji)}
@@ -361,7 +357,7 @@ export default function Messages({ darkMode = false }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#cbbdaa]">
-              <div className="font-semibold">Tin nhắn mới</div>
+              <div className="font-semibold">New message</div>
               <button
                 type="button"
                 onClick={() => setShowNewMessage(false)}
@@ -374,10 +370,10 @@ export default function Messages({ darkMode = false }) {
 
             <div className="px-5 py-3 border-b border-[#cbbdaa]">
               <div className="flex items-center gap-3 text-sm">
-                <span className="font-semibold">Tới:</span>
+                <span className="font-semibold">To:</span>
                 <input
                   type="text"
-                  placeholder="Tìm kiếm..."
+                  placeholder="Search..."
                   value={newMessageQuery}
                   onChange={(e) => setNewMessageQuery(e.target.value)}
                   className="flex-1 bg-transparent outline-none text-sm placeholder:text-[#8b7d72]"
@@ -388,7 +384,7 @@ export default function Messages({ darkMode = false }) {
             <div className="h-[320px] overflow-y-auto px-4 py-3 text-sm text-[#6b5c51]">
               {filteredNewUsers.length === 0 ? (
                 <div className="h-full rounded-2xl border border-[#cbbdaa] bg-white/60 flex items-center justify-center text-[#8b7d72]">
-                  Không tìm thấy người dùng
+                  No users found
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -398,9 +394,7 @@ export default function Messages({ darkMode = false }) {
                       type="button"
                       onClick={() => setSelectedRecipient(user)}
                       className={`w-full flex items-center gap-3 rounded-2xl border px-3 py-2 transition ${
-                        selectedRecipient?.id === user.id
-                          ? "border-[#6b5c51] bg-[#6b5c51]/15 text-[#4b4239]"
-                          : "border-[#d6c9bb] bg-white/70 hover:bg-white text-[#4b4239]"
+                        selectedRecipient?.id === user.id ? "border-[#6b5c51] bg-[#6b5c51]/15 text-[#4b4239]" : "border-[#d6c9bb] bg-white/70 hover:bg-white text-[#4b4239]"
                       }`}
                     >
                       <img
@@ -419,9 +413,7 @@ export default function Messages({ darkMode = false }) {
               <button
                 type="button"
                 className={`w-full rounded-2xl py-3 font-semibold transition ${
-                  selectedRecipient
-                    ? "bg-[#6b5c51] text-white hover:bg-[#5f5248]"
-                    : "bg-[#d6c9bb] text-[#8b7d72] cursor-not-allowed"
+                  selectedRecipient ? "bg-[#6b5c51] text-white hover:bg-[#5f5248]" : "bg-[#d6c9bb] text-[#8b7d72] cursor-not-allowed"
                 }`}
                 disabled={!selectedRecipient}
                 onClick={handleStartChat}
@@ -452,7 +444,7 @@ function IconButton({ icon, onClick }) {
 
 function MessageBubble({ message, repliedTo, onReact, onReply }) {
   const isMe = message.from === "me";
-  const reactions = ["👍", "❤️", "😊"];
+  const reactions = ["<3", ":)", ":D"];
 
   return (
     <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
@@ -525,9 +517,7 @@ function ChatRowStyled({ chat, activeId, onSelect }) {
     <button
       onClick={onSelect}
       className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${
-        isActive
-          ? "bg-white/80 border-l-4 border-[#6b5c51] dark:bg-[#2B2722] dark:border-[#B89B6C]"
-          : "hover:bg-white/60 dark:hover:bg-[#2B2722]"
+        isActive ? "bg-white/80 border-l-4 border-[#6b5c51] dark:bg-[#2B2722] dark:border-[#B89B6C]" : "hover:bg-white/60 dark:hover:bg-[#2B2722]"
       }`}
     >
       <img
@@ -556,9 +546,7 @@ function TabNav({ activeTab, onChange }) {
             key={tab}
             onClick={() => onChange(tab)}
             className={`text-xs px-3 py-1 rounded-full border ${
-              active
-                ? "bg-[#6b5c51] text-white border-[#6b5c51]"
-                : "bg-white/60 text-[#6b5c51] border-transparent hover:bg-white dark:bg-[#2B2722] dark:text-[#B89B6C] dark:hover:bg-[#3a332c]"
+              active ? "bg-[#6b5c51] text-white border-[#6b5c51]" : "bg-white/60 text-[#6b5c51] border-transparent hover:bg-white dark:bg-[#2B2722] dark:text-[#B89B6C] dark:hover:bg-[#3a332c]"
             }`}
           >
             {tab}

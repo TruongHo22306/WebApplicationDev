@@ -66,7 +66,7 @@ export default function Login() {
   return (
     <div className="w-full min-h-screen flex bg-[#d9ccbe]  dark:bg-[#1a1a1a] overflow-hidden">
 
-      {/* LEFT IMAGE PANEL — slide left */}
+      {/* LEFT IMAGE PANEL - slide left */}
       <div className="hidden lg:flex lg:w-3/5 relative rounded-r-1xl overflow-hidden animate-slideLeft z-10">
         <img
           src={bgImage}
@@ -79,12 +79,12 @@ export default function Login() {
 
         <div className="z-10 mt-auto mb-20 ml-10 text-white drop-shadow-2xl animate-fade">
           <h1 className="text-5xl font-light leading-tight">
-            Get<br />Everything<br />You want
+            Belive<br />In<br />Yourself
           </h1>
         </div>
       </div>
 
-      {/* RIGHT FORM PANEL — slide right */}
+      {/* RIGHT FORM PANEL - slide right */}
       <div className="flex flex-col justify-center items-center w-full lg:w-2/5 px-8 lg:px-20 animate-slideRight bg-white/40 backdrop-blur-10xl dark:bg-[#1a1a1a]/80 z-10">
 
         <div className="animate-fade">
@@ -132,7 +132,7 @@ export default function Login() {
               className="w-full mt-1 p-3 rounded-lg bg-[#ece8e6] dark:bg-[#2b2b2b] pr-12"
             />
 
-            {/* SHOW/HIDE PASSWORD — giữ nguyên bản bạn thích */}
+            {/* SHOW/HIDE PASSWORD */}
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -189,7 +189,7 @@ export default function Login() {
 
           {/* SIGNUP LINK */}
           <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-300">
-            Don’t have an account?
+            Don't have an account?
             <Link to="/signup" className="ml-1 text-blue-600 hover:underline">
               Sign up
             </Link>

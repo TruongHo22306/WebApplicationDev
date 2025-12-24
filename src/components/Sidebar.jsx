@@ -8,6 +8,7 @@ import {
   FiLogOut,
   FiMessageCircle,
   FiBell,
+  FiUser,
   FiX,
   FiPlus,
 } from "react-icons/fi";
@@ -55,17 +56,7 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
     {icon: <FiPlus size={23} />, label: "Create", path: "/create" },
     { icon: <FiMessageCircle size={23} />, label: "Messages", path: "/messages" },
     { icon: <FiBell size={23} />, label: "Notifications", path: "/notifications" },
-    {
-      icon: (
-        <img
-          src={userAvatar}
-          alt="Your avatar"
-          className="w-7 h-7 rounded-full object-cover border border-white/40"
-        />
-      ),
-      label: "Profile",
-      path: "/profile",
-    },
+    { icon: <FiUser size={23} />, label: "Profile", path: "/profile" },
   ];
 
   const handleRefresh = () => {
@@ -111,8 +102,8 @@ export default function Sidebar({ darkMode = false, onToggleDarkMode }) {
           {expanded && <div className="leading-tight"></div>}
         </button>
 
-        <div className="flex-1 flex flex-col items-stretch justify-center">
-          <nav className="flex flex-col justify-center gap-3">
+        <div className="flex-1 flex flex-col items-stretch justify-start">
+          <nav className="flex flex-col gap-3">
             {menuItems.map((item) => {
               const active = location.pathname === item.path;
 

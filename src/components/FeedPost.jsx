@@ -14,7 +14,6 @@ export default function FeedPost({
   avatar = "https://i.pravatar.cc/60?img=7",
   createdAt = "Just now",
   content = "New post",
-  privacy = "Public",
   attachments = {},
   stats = { likes: 0, comments: 0, shares: 0 },
 }) {
@@ -180,9 +179,6 @@ export default function FeedPost({
               </p>
             </div>
           </div>
-          <span className="text-sm text-neutral-500 dark:text-gray-400">
-            {privacy}
-          </span>
         </div>
 
         <p className="mt-5 text-[16px] leading-relaxed whitespace-pre-line">

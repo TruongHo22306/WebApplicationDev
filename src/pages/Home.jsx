@@ -149,7 +149,7 @@ export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, 
                   }`}
                   style={!isRefreshing ? { transform: `rotate(${(pullDistance / 120) * 180}deg)` } : {}}
                 >
-                  {!isRefreshing && <span className="text-[11px]">↓</span>}
+                  {!isRefreshing && <span className="text-[11px]">v</span>}
                 </div>
                 <span>{isRefreshing ? "Refreshing..." : "Pull to refresh"}</span>
               </div>
@@ -164,9 +164,11 @@ export default function Home({ darkMode, onToggleDarkMode, onOpenNotifications, 
               <div className="text-center py-10 opacity-70">Loading feed...</div>
             ) : posts.length === 0 ? (
               <div className="mt-6 p-8 rounded-2xl bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm text-gray-600 dark:text-gray-300 text-center shadow-sm">
-                <div className="text-2xl mb-2">¯\_(ツ)_/¯</div>
-                <div className="font-semibold mb-1">Chưa có bài viết nào</div>
-                <p className="text-sm">Hãy tạo bài đầu tiên hoặc đổi bộ lọc.</p>
+
+                <div className="text-2xl mb-2">:(</div>
+                <div className="font-semibold mb-1">No posts yet</div>
+                <p className="text-sm">Create your first post or change the filter.</p>
+ e10a1dd8a49d51289fed9159e5a0db9a8721b5ac
               </div>
             ) : (
               posts.map((post) => (
