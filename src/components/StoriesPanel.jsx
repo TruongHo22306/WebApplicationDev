@@ -2,52 +2,15 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiPlus } from "react-icons/fi";
 
-// 1. Define Mock Data (Matches your MongoDB Structure)
-const MOCK_STORIES = [
-  {
-    _id: "mock-1",
-    user: {
-      first: "Sarah",
-      avatar: "https://i.pravatar.cc/150?img=5"
-    },
-    media: {
-      type: "image",
-      src: "https://images.unsplash.com/photo-1529139574466-a302d2052574?auto=format&fit=crop&w=400&q=80"
-    }
-  },
-  {
-    _id: "mock-2",
-    user: {
-      first: "Jason",
-      avatar: "https://i.pravatar.cc/150?img=11"
-    },
-    media: {
-      type: "gradient",
-      src: "linear-gradient(45deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%)"
-    }
-  },
-  {
-    _id: "mock-3",
-    user: {
-      first: "Traveler",
-      avatar: "https://i.pravatar.cc/150?img=32"
-    },
-    media: {
-      type: "image",
-      src: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=400&q=80"
-    }
-  }
-];
-
 export default function StoriesPanel() {
-  // Initialize with MOCK_STORIES so they appear instantly
-  const [stories, setStories] = useState(MOCK_STORIES);
+  const [stories, setStories] = useState([]);
 
-  // Fetch Real Stories from Backend
+  // Fetch from Backend
   useEffect(() => {
     const fetchStories = async () => {
       try {
         const token = localStorage.getItem("token");
+        // Only fetch if logged in
         if (!token) return;
 
         const res = await fetch("http://localhost:5000/api/stories", {
@@ -58,8 +21,7 @@ export default function StoriesPanel() {
         
         if (res.ok) {
           const realStories = await res.json();
-          // Merge Real Stories FIRST, then Mock Stories
-          setStories([...realStories, ...MOCK_STORIES]);
+          setStories(realStories); // Load ONLY real stories
         }
       } catch (err) {
         console.error("Failed to load stories", err);
@@ -90,7 +52,7 @@ export default function StoriesPanel() {
           Create Story
         </Link>
 
-        {/* Story List (Real + Mock) */}
+        {/* Story List */}
         {stories.map((story) => (
           <Link
             to={`/stories?active=${story._id}`}

@@ -61,6 +61,7 @@ const DRAFT_KEY = "create_story_draft_v1";
 export default function StoryCreation({ darkMode = true }) {
   const navigate = useNavigate();
   const [media, setMedia] = useState(null); // { src, name }
+  const [imageFile, setImageFile] = useState(null);
   const [mode, setMode] = useState("move"); // move | text | sticker | draw
   const [preview, setPreview] = useState(false);
 
@@ -228,16 +229,17 @@ export default function StoryCreation({ darkMode = true }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Convert to Base64 so it persists in DB
+    // Keep Base64 ONLY for local preview
     const base64 = await convertToBase64(file);
 
     resetCanvasState();
     setMedia({ src: base64, name: file.name, type: "image" });
-
+    setImageFile(file); // <--- Store the raw file for Cloudinary
     e.target.value = "";
   };
 
   const applyBackground = (preset) => {
+    setImageFile(null); // <--- Clear any uploaded file
     const nextMedia =
       preset.type === "gradient"
         ? { type: "gradient", gradient: preset.value, name: preset.label }
@@ -507,30 +509,47 @@ export default function StoryCreation({ darkMode = true }) {
   const publish = async (where) => {
     if (!media) return;
 
-    const payload = {
-      media: {
-        type: media.type,
-        src: media.type === "gradient" ? media.gradient : media.src,
-        name: media.name || "Story"
-      },
-      objects,
-      strokes,
-    };
-
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Please login first to post a story");
+        alert("Please login first");
         return navigate("/login");
       }
 
+      // 1. Prepare FormData
+      const formData = new FormData();
+
+      // Append Image File (only if it's an uploaded image)
+      if (imageFile && media.type === 'image') {
+        formData.append('image', imageFile);
+      }
+
+      // Append Complex Data (JSON Stringified)
+      formData.append('objects', JSON.stringify(objects));
+      formData.append('strokes', JSON.stringify(strokes));
+
+      // Append Media Metadata
+      // If it's a gradient, we send the gradient string as 'src'.
+      // If it's an image, the backend will replace 'src' with the Cloudinary URL.
+      const mediaPayload = {
+        type: media.type,
+        name: media.name || "Story",
+        
+        // FIX: Do NOT send media.src if it is an image (it's a massive Base64 string).
+        // The backend uses the uploaded file anyway.
+        src: media.type === 'gradient' ? media.gradient : '' 
+      };
+      
+      formData.append('media', JSON.stringify(mediaPayload));
+
+      // 2. Send to Backend
       const res = await fetch("http://localhost:5000/api/stories", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
+          // No Content-Type header! Browser sets it automatically.
         },
-        body: JSON.stringify(payload)
+        body: formData
       });
 
       if (res.ok) {
@@ -542,7 +561,6 @@ export default function StoryCreation({ darkMode = true }) {
       }
     } catch (err) {
       console.error("Story publish error:", err);
-      alert("Could not connect to server");
     }
   };
 
