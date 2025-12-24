@@ -18,7 +18,7 @@ const reelsData = [
     id: 1,
     src: "https://videos.pexels.com/video-files/854260/854260-hd_1920_1080_30fps.mp4",
     username: "alex.morgan",
-    caption: "Morning vibes dYO.",
+    caption: "Morning vibes.",
     likes: 12400,
     comments: 521,
   },
@@ -26,7 +26,7 @@ const reelsData = [
     id: 2,
     src: "https://videos.pexels.com/video-files/2795741/2795741-hd_1920_1080_30fps.mp4",
     username: "travel.earth",
-    caption: "Vietnam is beautiful dYØ¯dYØ3",
+    caption: "Vietnam is beautiful.",
     likes: 31100,
     comments: 1204,
   },
@@ -34,7 +34,7 @@ const reelsData = [
     id: 3,
     src: "https://videos.pexels.com/video-files/853427/853427-hd_1920_1080_30fps.mp4",
     username: "foodie",
-    caption: "Best burger ever dYdY?\"",
+    caption: "Best burger ever.",
     likes: 8932,
     comments: 212,
   },
@@ -72,7 +72,7 @@ const sampleComments = [
   {
     id: 1,
     user: "amayra.3850",
-    time: "18 giờ",
+    time: "18 hours",
     text: "🔥 😂",
     likes: 12,
     replies: 2,
@@ -81,7 +81,7 @@ const sampleComments = [
   {
     id: 2,
     user: "allee_muhmmad",
-    time: "1 ngày",
+    time: "1 day",
     text: "Pantesan beliau panjang umur",
     likes: 307,
     replies: 3,
@@ -136,7 +136,7 @@ export default function Reels({ darkMode }) {
   }, [muted]);
 
   const handleDoubleTap = (index) => {
-    // b §-t like
+    // double-tap to like
     setLiked((prev) => {
       const copy = [...prev];
       copy[index] = true;
@@ -351,7 +351,7 @@ export default function Reels({ darkMode }) {
           }`}
         >
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-            <h3 className="text-lg font-semibold">Bình luận</h3>
+            <h3 className="text-lg font-semibold">Comments</h3>
             <button
               type="button"
               onClick={() => setOpenComments(false)}
@@ -401,7 +401,7 @@ export default function Reels({ darkMode }) {
               />
               <input
                 type="text"
-                placeholder="Bình luận..."
+                placeholder="Add a comment..."
                 className="flex-1 bg-transparent outline-none text-sm placeholder:text-white/60"
               />
               <button
