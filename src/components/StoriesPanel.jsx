@@ -1,70 +1,88 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiPlus } from "react-icons/fi";
 
-const STORIES_KEY = "stories_feed_v1";
-
-const mockStories = [
+// 1. Define Mock Data (Matches your MongoDB Structure)
+const MOCK_STORIES = [
   {
-    id: "s1",
-    cover: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=400&q=80",
-    author: "James Bator",
-    avatar: "https://i.pravatar.cc/100?img=12",
+    _id: "mock-1",
+    user: {
+      first: "Sarah",
+      avatar: "https://i.pravatar.cc/150?img=5"
+    },
+    media: {
+      type: "image",
+      src: "https://images.unsplash.com/photo-1529139574466-a302d2052574?auto=format&fit=crop&w=400&q=80"
+    }
   },
   {
-    id: "s2",
-    cover: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=400&q=80",
-    author: "Riyan Ali",
-    avatar: "https://i.pravatar.cc/100?img=35",
+    _id: "mock-2",
+    user: {
+      first: "Jason",
+      avatar: "https://i.pravatar.cc/150?img=11"
+    },
+    media: {
+      type: "gradient",
+      src: "linear-gradient(45deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%)"
+    }
   },
   {
-    id: "s3",
-    cover: "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e?auto=format&fit=crop&w=400&q=80",
-    author: "Nolan Jhon",
-    avatar: "https://i.pravatar.cc/100?img=20",
-  },
-  {
-    id: "s4",
-    cover: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80",
-    author: "Miracle Diaz",
-    avatar: "https://i.pravatar.cc/100?img=45",
-  },
+    _id: "mock-3",
+    user: {
+      first: "Traveler",
+      avatar: "https://i.pravatar.cc/150?img=32"
+    },
+    media: {
+      type: "image",
+      src: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=400&q=80"
+    }
+  }
 ];
 
 export default function StoriesPanel() {
-  const [savedStories, setSavedStories] = useState([]);
+  // Initialize with MOCK_STORIES so they appear instantly
+  const [stories, setStories] = useState(MOCK_STORIES);
 
+  // Fetch Real Stories from Backend
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORIES_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) setSavedStories(parsed);
-    } catch {
-      // ignore storage errors
-    }
-  }, []);
+    const fetchStories = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-  const stories = useMemo(() => {
-    return [...savedStories, ...mockStories];
-  }, [savedStories]);
+        const res = await fetch("http://localhost:5000/api/stories", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        
+        if (res.ok) {
+          const realStories = await res.json();
+          // Merge Real Stories FIRST, then Mock Stories
+          setStories([...realStories, ...MOCK_STORIES]);
+        }
+      } catch (err) {
+        console.error("Failed to load stories", err);
+      }
+    };
+
+    fetchStories();
+  }, []);
 
   return (
     <div className="w-full max-w-5xl mx-auto mb-8 px-2">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-bold text-[18px]">Stories</h2>
-        <Link
-          to="/stories"
-          className="text-[13px] text-[#6B5C51] hover:underline font-semibold"
-        >
+        <h2 className="font-bold text-[18px] dark:text-white">Stories</h2>
+        <Link to="/stories" className="text-[13px] text-[#6B5C51] hover:underline font-semibold dark:text-gray-300">
           View all
         </Link>
       </div>
 
       <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2">
+        {/* Create Button */}
         <Link
           to="/create-story"
-          className="min-w-[110px] h-[160px] rounded-3xl border-2 border-dashed border-[#7d7573]/40 dark:border-white/20 flex flex-col items-center justify-center text-sm font-semibold text-[#7d7573] dark:text-white/80 hover:border-[#5b6cff] hover:text-[#5b6cff] transition"
+          className="w-[110px] min-w-[110px] h-[160px] flex-shrink-0 rounded-3xl border-2 border-dashed border-[#7d7573]/40 dark:border-white/20 flex flex-col items-center justify-center text-sm font-semibold text-[#7d7573] dark:text-white/80 hover:border-[#5b6cff] hover:text-[#5b6cff] transition"
         >
           <div className="w-10 h-10 rounded-2xl border border-current flex items-center justify-center mb-2">
             <FiPlus size={20} />
@@ -72,29 +90,39 @@ export default function StoriesPanel() {
           Create Story
         </Link>
 
+        {/* Story List (Real + Mock) */}
         {stories.map((story) => (
           <Link
-            to={`/stories?active=${story.id}`}
-            key={story.id}
-            className="relative min-w-[110px] h-[160px] rounded-3xl overflow-hidden bg-neutral-200 dark:bg-neutral-800 shadow-sm ring-1 ring-black/5 dark:ring-white/10 transition-transform duration-200 hover:scale-[1.02] hover:shadow-lg"
+            to={`/stories?active=${story._id}`}
+            key={story._id}
+            className="relative w-[110px] min-w-[110px] h-[160px] flex-shrink-0 rounded-3xl overflow-hidden bg-neutral-200 dark:bg-neutral-800 shadow-sm ring-1 ring-black/5 dark:ring-white/10 transition-transform duration-200 hover:scale-[1.02] hover:shadow-lg"
           >
-            {story.coverType === "gradient" ? (
-              <div className="w-full h-full" style={{ backgroundImage: story.cover }} />
+            {/* Render Background */}
+            {story.media.type === "gradient" ? (
+              <div className="w-full h-full" style={{ background: story.media.src }} />
             ) : (
-              <img src={story.cover} alt={story.author} className="w-full h-full object-cover" />
+              <img src={story.media.src} alt="story" className="w-full h-full object-cover" />
             )}
+            
+            {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
 
+            {/* User Avatar */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="p-[2px] rounded-full bg-gradient-to-tr from-pink-500 via-amber-300 to-purple-500">
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/90">
-                  <img src={story.avatar} alt={story.author} className="w-full h-full object-cover" />
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/90 bg-white">
+                  <img 
+                    src={story.user?.avatar || "https://i.pravatar.cc/150"} 
+                    alt={story.user?.first} 
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
               </div>
             </div>
 
-            <p className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white text-[13px] font-semibold drop-shadow-sm">
-              {story.author}
+            {/* User Name */}
+            <p className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white text-[13px] font-semibold drop-shadow-sm whitespace-nowrap">
+              {story.user?.first || "User"}
             </p>
           </Link>
         ))}
